@@ -74,8 +74,10 @@
 #include <net/route.h>
 #include <netinet/in.h>
 #include <netinet/if_ether.h>
-#include <netinet/igmp_var.h>
-#include <netinet6/mld6_var.h>
+// #include <netinet/igmp_var.h>
+#include "netinet/igmp_var.h"
+// #include <netinet6/mld6_var.h>
+#include "netinet6/mld6_var.h"
 #include <arpa/inet.h>
 #include <netdb.h>
 
@@ -142,12 +144,12 @@ extern char *routename6(struct sockaddr_in6 *);
 	((((struct sockaddr_dl *)(a1))->sdl_len ==			\
 	 ((struct sockaddr_dl *)(a2))->sdl_len) &&			\
 	 (bcmp(LLADDR((struct sockaddr_dl *)(a1)),			\
-	       LLADDR((struct sockaddr_dl *)(a2)),			\
-	       ((struct sockaddr_dl *)(a1))->sdl_alen) == 0))
+			LLADDR((struct sockaddr_dl *)(a2)),			\
+			((struct sockaddr_dl *)(a1))->sdl_alen) == 0))
 
 #define	SALIGN	(sizeof(uint32_t) - 1)
 #define	SA_RLEN(sa)	(sa ? ((sa)->sa_len ? (((sa)->sa_len + SALIGN) & ~SALIGN) : \
-			    (SALIGN + 1)) : 0)
+				(SALIGN + 1)) : 0)
 #define	MAX_SYSCTL_TRY	5
 #define	RTA_MASKS	(RTA_GATEWAY | RTA_IFP | RTA_IFA)
 
@@ -173,12 +175,11 @@ ifmalist_dump_af(const struct ifmaddrs * const ifmap, int const af)
 		pafname = "Link-layer";
 		break;
 	default:
-		return;		/* XXX */
+		return; /* XXX */
 	}
 
 	fprintf(stdout, "%s Multicast Group Memberships\n", pafname);
-	fprintf(stdout, "%-20s\t%-16s\t%s\n", "Group", "Link-layer Address",
-	    "Netif");
+	fprintf(stdout, "%-20s\t%-16s\t%s\n", "Group", "Link-layer Address", "Netif");
 
 	for (ifma = ifmap; ifma; ifma = ifma->ifma_next) {
 
@@ -202,14 +203,14 @@ ifmalist_dump_af(const struct ifmaddrs * const ifmap, int const af)
 		case AF_LINK:
 			if ((psa->sdl.sdl_alen == ETHER_ADDR_LEN) ||
 			    (psa->sdl.sdl_type == IFT_ETHER)) {
-				pgroup =
-ether_ntoa((struct ether_addr *)&psa->sdl.sdl_data);
+					pgroup = ether_ntoa(
+						(struct ether_addr *)&psa->sdl.sdl_data);
 #ifdef notyet
 			} else {
 				pgroup = addr2ascii(AF_LINK,
-				    &psa->sdl,
-				    sizeof(struct sockaddr_dl),
-				    addrbuf);
+					&psa->sdl,
+					sizeof(struct sockaddr_dl),
+					addrbuf);
 #endif
 			}
 			break;
@@ -222,25 +223,25 @@ ether_ntoa((struct ether_addr *)&psa->sdl.sdl_data);
 		if (psa != NULL) {
 			if (psa->sa.sa_family == AF_LINK) {
 				if ((psa->sdl.sdl_alen == ETHER_ADDR_LEN) ||
-				    (psa->sdl.sdl_type == IFT_ETHER)) {
-					/* IEEE 802 */
-					plladdr =
-ether_ntoa((struct ether_addr *)&psa->sdl.sdl_data);
+					(psa->sdl.sdl_type == IFT_ETHER)) {
+						/* IEEE 802 */
+						plladdr = ether_ntoa(
+							(struct ether_addr *)&psa->sdl.sdl_data);
 #ifdef notyet
 				} else {
 					/* something more exotic */
 					plladdr = addr2ascii(AF_LINK,
-					    &psa->sdl,
-					    sizeof(struct sockaddr_dl),
-					    addrbuf);
+						&psa->sdl,
+						sizeof(struct sockaddr_dl),
+						addrbuf);
 #endif
 				}
 			} else {
 				int i;
-				
+
 				/* not a link-layer address */
 				plladdr = "<invalid>";
-				
+
 				for (i = 0; psa->sa.sa_len > 2 && i < psa->sa.sa_len - 2; i++)
 					printf("0x%x ", psa->sa.sa_data[i]);
 				printf("\n");
@@ -361,8 +362,8 @@ ifmalist_dump_mcstat(struct ifmaddrs *ifmap)
 		pifasa = NULL;
 		for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
 			if ((strcmp(ifa->ifa_name, thisifname) != 0) ||
-			    (ifa->ifa_addr == NULL) ||
-			    (ifa->ifa_addr->sa_family != pgsa->sa.sa_family))
+				(ifa->ifa_addr == NULL) ||
+				(ifa->ifa_addr->sa_family != pgsa->sa.sa_family))
 				continue;
 			/*
 			 * For AF_INET6 only the link-local address should
@@ -372,7 +373,7 @@ ifmalist_dump_mcstat(struct ifmaddrs *ifmap)
 			pifasa = (sockunion_t *)ifa->ifa_addr;
 			if (pifasa->sa.sa_family == AF_INET6
 #ifdef INET6
-			    && !IN6_IS_ADDR_LINKLOCAL(&pifasa->sin6.sin6_addr)
+				&& !IN6_IS_ADDR_LINKLOCAL(&pifasa->sin6.sin6_addr)
 #endif
 			) {
 				pifasa = NULL;
@@ -388,9 +389,9 @@ ifmalist_dump_mcstat(struct ifmaddrs *ifmap)
 
 		/* Parse and print primary address, if not already printed. */
 		if (lastifasa.ss.ss_family == AF_UNSPEC ||
-		    ((lastifasa.ss.ss_family == AF_LINK &&
-		      !sa_dl_equal(&lastifasa.sa, &pifasa->sa)) ||
-		     !sa_equal(&lastifasa.sa, &pifasa->sa))) {
+			((lastifasa.ss.ss_family == AF_LINK &&
+				!sa_dl_equal(&lastifasa.sa, &pifasa->sa)) ||
+				!sa_equal(&lastifasa.sa, &pifasa->sa))) {
 
 			switch (pifasa->sa.sa_family) {
 			case AF_INET:
@@ -420,17 +421,13 @@ ifmalist_dump_mcstat(struct ifmaddrs *ifmap)
 			/* FALLTHROUGH */
 #endif
 			case AF_INET:
-				error = getnameinfo(&pifasa->sa,
-				    pifasa->sa.sa_len,
-				    addrbuf, sizeof(addrbuf), NULL, 0,
-				    NI_NUMERICHOST);
+				error = getnameinfo(&pifasa->sa, pifasa->sa.sa_len,
+					addrbuf, sizeof(addrbuf), NULL, 0, NI_NUMERICHOST);
 				if (error)
-					printf("getnameinfo: %s\n",
-					    gai_strerror(error));
+					printf("getnameinfo: %s\n", gai_strerror(error));
 				break;
 			case AF_LINK: {
-				(void) sdl_addr_to_hex(&pifasa->sdl, addrbuf,
-				    sizeof (addrbuf));
+				(void) sdl_addr_to_hex(&pifasa->sdl, addrbuf, sizeof(addrbuf));
 				break;
 			}
 			default:
@@ -448,15 +445,13 @@ ifmalist_dump_mcstat(struct ifmaddrs *ifmap)
 				int mib[5];
 
 				mibsize = sizeof(mib) / sizeof(mib[0]);
-				if (sysctlnametomib("net.inet.igmp.ifinfo",
-				    mib, &mibsize) == -1) {
+				if (sysctlnametomib("net.inet.igmp.ifinfo", mib, &mibsize) == -1) {
 					perror("sysctlnametomib");
 					goto next_ifnet;
 				}
 				mib[mibsize] = thisifindex;
 				len = sizeof(struct igmp_ifinfo);
-				if (sysctl(mib, mibsize + 1, &igi, &len, NULL,
-				    0) == -1) {
+				if (sysctl(mib, mibsize + 1, &igi, &len, NULL, 0) == -1) {
 					perror("sysctl net.inet.igmp.ifinfo");
 					goto next_ifnet;
 				}
@@ -472,15 +467,13 @@ ifmalist_dump_mcstat(struct ifmaddrs *ifmap)
 				int mib[5];
 
 				mibsize = sizeof(mib) / sizeof(mib[0]);
-				if (sysctlnametomib("net.inet6.mld.ifinfo",
-				    mib, &mibsize) == -1) {
+				if (sysctlnametomib("net.inet6.mld.ifinfo", mib, &mibsize) == -1) {
 					perror("sysctlnametomib");
 					goto next_ifnet;
 				}
 				mib[mibsize] = thisifindex;
 				len = sizeof(struct mld_ifinfo);
-				if (sysctl(mib, mibsize + 1, &mli, &len, NULL,
-				    0) == -1) {
+				if (sysctl(mib, mibsize + 1, &mli, &len, NULL, 0) == -1) {
 					perror("sysctl net.inet6.mld.ifinfo");
 					goto next_ifnet;
 				}
@@ -502,10 +495,9 @@ next_ifnet:
 #endif
 		if (pgsa->sa.sa_family == AF_INET) {
 			error = getnameinfo(&pgsa->sa, pgsa->sa.sa_len,
-			    addrbuf, sizeof(addrbuf), NULL, 0, NI_NUMERICHOST);
+				addrbuf, sizeof(addrbuf), NULL, 0, NI_NUMERICHOST);
 			if (error)
-				printf("getnameinfo: %s\n",
-				    gai_strerror(error));
+				printf("getnameinfo: %s\n", gai_strerror(error));
 		} else {
 			(void) sdl_addr_to_hex(&pgsa->sdl, addrbuf,
 			    sizeof (addrbuf));
@@ -513,13 +505,11 @@ next_ifnet:
 
 		fprintf(stdout, "\t\tgroup %s", addrbuf);
 		if (pgsa->sa.sa_family == AF_INET) {
-			inm_print_sources_sysctl(thisifindex,
-			    pgsa->sin.sin_addr);
+			inm_print_sources_sysctl(thisifindex, pgsa->sin.sin_addr);
 		}
 #ifdef INET6
 		if (pgsa->sa.sa_family == AF_INET6) {
-			in6m_print_sources_sysctl(thisifindex,
-			    &pgsa->sin6.sin6_addr);
+			in6m_print_sources_sysctl(thisifindex, &pgsa->sin6.sin6_addr);
 		}
 #endif
 		fprintf(stdout, "\n");
@@ -527,22 +517,19 @@ next_ifnet:
 		/* Link-layer mapping, if present. */
 		pllsa = (sockunion_t *)ifma->ifma_lladdr;
 		if (pllsa != NULL) {
-			(void) sdl_addr_to_hex(&pllsa->sdl, addrbuf,
-			    sizeof (addrbuf));
+			(void) sdl_addr_to_hex(&pllsa->sdl, addrbuf, sizeof (addrbuf));
 			fprintf(stdout, "\t\t\tmcast-macaddr %s\n", addrbuf);
 		}
 	}
 
 	if (ifap != NULL)
 		freeifaddrs(ifap);
-
 	return (error);
 }
 
 static void
 in_ifinfo(struct igmp_ifinfo *igi)
 {
-
 	printf("\t");
 	switch (igi->igi_version) {
 	case IGMP_VERSION_1:
@@ -557,11 +544,11 @@ in_ifinfo(struct igmp_ifinfo *igi)
 	printb(" flags", igi->igi_flags, "\020\1SILENT\2LOOPBACK");
 	if (igi->igi_version == IGMP_VERSION_3) {
 		printf(" rv %u qi %u qri %u uri %u",
-		    igi->igi_rv, igi->igi_qi, igi->igi_qri, igi->igi_uri);
+				igi->igi_rv, igi->igi_qi, igi->igi_qri, igi->igi_uri);
 	}
 	if (vflag >= 2) {
 		printf(" v1timer %u v2timer %u v3timer %u",
-		    igi->igi_v1_timer, igi->igi_v2_timer, igi->igi_v3_timer);
+				igi->igi_v1_timer, igi->igi_v2_timer, igi->igi_v3_timer);
 	}
 	printf("\n");
 }
@@ -575,7 +562,6 @@ static const char *inm_modes[] = {
 static const char *
 inm_mode(u_int mode)
 {
-
 	if (mode >= MCAST_UNDEFINED && mode <= MCAST_EXCLUDE)
 		return (inm_modes[mode]);
 	return (NULL);
@@ -656,17 +642,17 @@ inm_print_sources_sysctl(uint32_t ifindex, struct in_addr gina)
 		if (i == 0)
 			printf(" srcs ");
 		fprintf(stdout, "%s%s", (i == 0 ? "" : ","),
-		    inet_ntoa(*pina++));
+			inet_ntoa(*pina++));
 		len -= sizeof(struct in_addr);
 	}
 	if (len > 0) {
 		fprintf(stderr, "warning: %u trailing bytes from %s\n",
-		    (unsigned int)len, "net.inet.ip.mcast.filters");
+				(unsigned int)len, "net.inet.ip.mcast.filters");
 	}
 
 out_free:
 	free(buf);
-#undef	MAX_SYSCTL_TRY
+#undef MAX_SYSCTL_TRY
 }
 
 #ifdef INET6
@@ -674,7 +660,6 @@ out_free:
 static void
 in6_ifinfo(struct mld_ifinfo *mli)
 {
-
 	printf("\t");
 	switch (mli->mli_version) {
 	case MLD_VERSION_1:
@@ -688,11 +673,11 @@ in6_ifinfo(struct mld_ifinfo *mli)
 	printb(" flags", mli->mli_flags, "\020\1SILENT");
 	if (mli->mli_version == MLD_VERSION_2) {
 		printf(" rv %u qi %u qri %u uri %u",
-		    mli->mli_rv, mli->mli_qi, mli->mli_qri, mli->mli_uri);
+			mli->mli_rv, mli->mli_qi, mli->mli_qri, mli->mli_uri);
 	}
 	if (vflag >= 2) {
 		printf(" v1timer %u v2timer %u", mli->mli_v1_timer,
-		   mli->mli_v2_timer);
+			mli->mli_v2_timer);
 	}
 	printf("\n");
 }
@@ -727,8 +712,7 @@ in6m_print_sources_sysctl(uint32_t ifindex, struct in6_addr *pgroup)
 	const char *modestr;
 
 	mibsize = sizeof(mib) / sizeof(mib[0]);
-	if (sysctlnametomib("net.inet6.ip6.mcast.filters", mib,
-	    &mibsize) == -1) {
+	if (sysctlnametomib("net.inet6.ip6.mcast.filters", mib, &mibsize) == -1) {
 		perror("sysctlnametomib");
 		return;
 	}
@@ -784,14 +768,13 @@ in6m_print_sources_sysctl(uint32_t ifindex, struct in6_addr *pgroup)
 	for (i = 0; i < cnt; i++) {
 		if (i == 0)
 			printf(" srcs ");
-		inet_ntop(AF_INET6, (const char *)pina++, addrbuf,
-		    INET6_ADDRSTRLEN);
+		inet_ntop(AF_INET6, (const char *)pina++, addrbuf, INET6_ADDRSTRLEN);
 		fprintf(stdout, "%s%s", (i == 0 ? "" : ","), addrbuf);
 		len -= sizeof(struct in6_addr);
 	}
 	if (len > 0) {
 		fprintf(stderr, "warning: %u trailing bytes from %s\n",
-		    (unsigned int)len, "net.inet6.ip6.mcast.filters");
+				(unsigned int)len, "net.inet6.ip6.mcast.filters");
 	}
 
 out_free:
@@ -812,7 +795,7 @@ inet6_n2a(struct in6_addr *p)
 	sin6.sin6_len = sizeof(struct sockaddr_in6);
 	sin6.sin6_addr = *p;
 	if (IN6_IS_ADDR_LINKLOCAL(p) || IN6_IS_ADDR_MC_LINKLOCAL(p) ||
-	    IN6_IS_ADDR_MC_NODELOCAL(p)) {
+		IN6_IS_ADDR_MC_NODELOCAL(p)) {
 		scopeid = ntohs(*(u_int16_t *)&sin6.sin6_addr.s6_addr[2]);
 		if (scopeid) {
 			sin6.sin6_scope_id = scopeid;
@@ -820,8 +803,7 @@ inet6_n2a(struct in6_addr *p)
 			sin6.sin6_addr.s6_addr[3] = 0;
 		}
 	}
-	if (getnameinfo((struct sockaddr *)&sin6, sin6.sin6_len,
-	    buf, sizeof(buf), NULL, 0, niflags) == 0) {
+	if (getnameinfo((struct sockaddr *)&sin6, sin6.sin6_len, buf, sizeof(buf), NULL, 0, niflags) == 0) {
 		return (buf);
 	} else {
 		return ("(invalid)");
@@ -862,7 +844,7 @@ printb(const char *s, unsigned int v, const char *bits)
 
 /*
  * convert hardware address to hex string for logging errors.
-  */
+ */
 static const char *
 sdl_addr_to_hex(const struct sockaddr_dl *sdl, char *orig_buf, int buflen)
 {
@@ -885,4 +867,3 @@ sdl_addr_to_hex(const struct sockaddr_dl *sdl, char *orig_buf, int buflen)
 	}
 	return (orig_buf);
 }
-

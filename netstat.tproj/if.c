@@ -64,21 +64,12 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/kern_control.h>
-
-#include <net/if.h>
 #include <net/if_var.h>
 #include <net/if_dl.h>
 #include <net/if_types.h>
 #include <net/if_mib.h>
-#include <net/if_llreach.h>
 #include <net/ethernet.h>
 #include <net/route.h>
-#include <net/ntstat.h>
-#include <net/pktsched/pktsched_fq_codel.h>
-
-#include <net/pktsched/pktsched.h>
-#include <net/classq/if_classq.h>
-
 #include <netinet/in.h>
 #include <netinet/in_var.h>
 
@@ -97,6 +88,17 @@
 #include <assert.h>
 
 #include "netstat.h"
+
+#include "sys/socket_private.h"
+#include "sys/sockio_private.h"
+#include "net/if.h"
+#include "net/if_mib_private.h"
+#include "net/if_private.h"
+#include "net/if_llreach.h"
+#include "net/ntstat.h"
+#include "net/pktsched/pktsched_fq_codel.h"
+#include "net/pktsched/pktsched.h"
+#include "net/classq/if_classq.h"
 
 #define	YES	1
 #define	NO	0
@@ -1111,8 +1113,7 @@ catchalarm(int signo )
 }
 
 static char *
-sec2str(total)
-	time_t total;
+sec2str(time_t total)
 {
 	static char result[256];
 	int days, hours, mins, secs;

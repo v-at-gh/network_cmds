@@ -30,7 +30,8 @@
  * Display protocol blocks in the vsock domain.
  */
 #include <sys/proc_info.h>
-#include <sys/socketvar.h>
+// #include <sys/socketvar.h>
+#include "sys/socketvar.h"
 #include <sys/sysctl.h>
 #include <sys/vsock.h>
 
@@ -45,8 +46,7 @@
 static void vsockdomainpr __P((struct xvsockpcb *));
 
 void
-vsockpr(uint32_t proto,
-char *name, int af)
+vsockpr(uint32_t proto, char *name, int af)
 {
 	char   *buf, *next;
 	size_t len;
@@ -106,10 +106,7 @@ char *name, int af)
 }
 
 static void
-vsock_print_addr(buf, cid, port)
-	char *buf;
-	uint32_t cid;
-	uint32_t port;
+vsock_print_addr(char *buf, uint32_t cid, uint32_t port)
 {
 	if (cid == VMADDR_CID_ANY && port == VMADDR_PORT_ANY) {
 		(void) sprintf(buf, "*:*");
@@ -123,22 +120,21 @@ vsock_print_addr(buf, cid, port)
 }
 
 static void
-vsockdomainpr(xpcb)
-	struct xvsockpcb *xpcb;
+vsockdomainpr(struct xvsockpcb *xpcb)
 {
 	static int first = 1;
 
 	if (first) {
 		printf("Active VSock sockets\n");
 		printf("%-5.5s %-6.6s %-6.6s %-6.6s %-18.18s %-18.18s %-11.11s",
-			   "Proto", "Type",
-			   "Recv-Q", "Send-Q",
-			   "Local Address", "Foreign Address",
-			   "State");
+			"Proto", "Type",
+			"Recv-Q", "Send-Q",
+			"Local Address", "Foreign Address",
+			"State");
 		if (vflag > 0)
 			printf(" %10.10s %10.10s %10.10s %10.10s %6.6s %6.6s %6.6s %6s %10s",
-				   "rxcnt", "txcnt", "peer_rxcnt", "peer_rxhiwat",
-				   "rxhiwat", "txhiwat", "pid", "state", "options");
+				"rxcnt", "txcnt", "peer_rxcnt", "peer_rxhiwat",
+				"rxhiwat", "txhiwat", "pid", "state", "options");
 		printf("\n");
 		first = 0;
 	}
@@ -166,21 +162,21 @@ vsockdomainpr(xpcb)
 	}
 
 	printf("%-5.5s %-6.6s %6u %6u %-18s %-18s %-11s",
-	       "vsock", "stream",
-		   so->so_rcv.sb_cc, so->so_snd.sb_cc,
-		   srcAddr, dstAddr,
-	       state);
+		"vsock", "stream",
+		so->so_rcv.sb_cc, so->so_snd.sb_cc,
+		srcAddr, dstAddr,
+		state);
 	if (vflag > 0)
 		printf(" %10u %10u %10u %10u %6u %6u %6u 0x%04x 0x%08x",
-			   xpcb->xvp_rxcnt,
-			   xpcb->xvp_txcnt,
-			   xpcb->xvp_peer_rxcnt,
-			   xpcb->xvp_peer_rxhiwat,
-			   so->so_rcv.sb_hiwat,
-			   so->so_snd.sb_hiwat,
-			   xpcb->xvp_last_pid,
-			   so->so_state,
-			   so->so_options);
+			xpcb->xvp_rxcnt,
+			xpcb->xvp_txcnt,
+			xpcb->xvp_peer_rxcnt,
+			xpcb->xvp_peer_rxhiwat,
+			so->so_rcv.sb_hiwat,
+			so->so_snd.sb_hiwat,
+			xpcb->xvp_last_pid,
+			so->so_state,
+			so->so_options);
 	printf("\n");
 }
 

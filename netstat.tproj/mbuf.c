@@ -60,7 +60,8 @@
 
 #include <sys/param.h>
 #include <sys/socket.h>
-#include <sys/mbuf.h>
+// #include <sys/mbuf.h>
+#include "sys/mbuf.h"
 #include <sys/sysctl.h>
 
 #include <stdio.h>
@@ -76,7 +77,7 @@ struct	mbstat mbstat;
 
 static struct mbtypes {
 	int	mt_type;
-	char	*mt_name;
+	char *mt_name;
 } mbtypes[] = {
 	{ MT_DATA,	"data" },
 	{ MT_OOBDATA,	"oob data" },

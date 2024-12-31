@@ -64,12 +64,13 @@
 #include <sys/param.h>
 #include <sys/queue.h>
 #include <sys/socket.h>
-#include <sys/socketvar.h>
+// #include <sys/socketvar.h>
+#include "sys/socketvar.h"
 #include <sys/mbuf.h>
 #include <sys/sysctl.h>
 #include <sys/un.h>
-#include <sys/unpcb.h>
-
+// #include <sys/unpcb.h>
+#include "sys/unpcb.h"
 #include <netinet/in.h>
 
 #include <errno.h>
@@ -93,15 +94,15 @@ struct xgen_n {
 	u_int32_t	xgn_kind;	/* type of structure */
 };
 
-static	const char *const socktype[] =
-{ "#0", "stream", "dgram", "raw" };
+static	const char *const socktype[] = { "#0", "stream", "dgram", "raw" };
 
 static void
-unixdomainpr_n(struct xunpcb_n *xunp,
-	       struct xsocket_n *so,
-	       struct xsockbuf_n *so_rcv,
-	       struct xsockbuf_n *so_snd,
-	       struct xsockstat_n *so_stat)
+unixdomainpr_n(
+		struct xunpcb_n *xunp,
+		struct xsocket_n *so,
+		struct xsockbuf_n *so_rcv,
+		struct xsockbuf_n *so_snd,
+		struct xsockstat_n *so_stat)
 {
 	struct sockaddr_un *sa;
 	static int first = 1;
@@ -111,27 +112,27 @@ unixdomainpr_n(struct xunpcb_n *xunp,
 	if (first) {
 		printf("Active LOCAL (UNIX) domain sockets\n");
 		printf(
-		       "%-16.16s %-6.6s %-6.6s %-6.6s %16.16s %16.16s %16.16s %16.16s",
-		       "Address", "Type", "Recv-Q", "Send-Q",
-		       "Inode", "Conn", "Refs", "Nextref");
+			"%-16.16s %-6.6s %-6.6s %-6.6s %16.16s %16.16s %16.16s %16.16s",
+			"Address", "Type", "Recv-Q", "Send-Q",
+			"Inode", "Conn", "Refs", "Nextref");
 		if (bflag > 0 || vflag > 0)
 			printf(" %10.10s %10.10s",
-			       "rxbytes", "txbytes");
+					"rxbytes", "txbytes");
 		if (vflag > 0) {
 			printf(" %7.7s %7.7s %6.6s %6.6s %5.5s %8.8s",
-			       "rhiwat", "shiwat", "pid", "epid", "state", "options");
+					"rhiwat", "shiwat", "pid", "epid", "state", "options");
 			printf(" %16.16s %8.8s %8.8s %6s %6s %5s",
-			       "gencnt", "flags", "flags1", "usecnt", "rtncnt", "fltrs");
+					"gencnt", "flags", "flags1", "usecnt", "rtncnt", "fltrs");
 		}
 		printf(" Addr\n");
 		first = 0;
 	}
 
 	printf("%16llx %-6.6s %6u %6u %16llx %16llx %16llx %16llx",
-	       xunp->xunp_unpp, socktype[so->so_type], so_rcv->sb_cc,
-	       so_snd->sb_cc,
-	       xunp->xunp_vnode, xunp->xunp_conn,
-	       xunp->xunp_refs, xunp->xunp_reflink);
+			xunp->xunp_unpp, socktype[so->so_type], so_rcv->sb_cc,
+			so_snd->sb_cc,
+			xunp->xunp_vnode, xunp->xunp_conn,
+			xunp->xunp_refs, xunp->xunp_reflink);
 	if (bflag > 0 || vflag > 0) {
 		int i;
 		u_int64_t rxbytes = 0;
@@ -145,25 +146,25 @@ unixdomainpr_n(struct xunpcb_n *xunp,
 	}
 	if (vflag > 0) {
 		printf(" %7u %7u %6u %6u %05x %08x",
-		       so_rcv->sb_hiwat,
-		       so_snd->sb_hiwat,
-		       so->so_last_pid,
-		       so->so_e_pid,
-		       so->so_state,
-		       so->so_options);
+				so_rcv->sb_hiwat,
+				so_snd->sb_hiwat,
+				so->so_last_pid,
+				so->so_e_pid,
+				so->so_state,
+				so->so_options);
 		printf(" %016llx %08x %08x %6d %6d %06x",
-		       so->so_gencnt,
-		       so->so_flags,
-		       so->so_flags1,
-		       so->so_usecount,
-		       so->so_retaincnt,
-		       so->xso_filter_flags);
+				so->so_gencnt,
+				so->so_flags,
+				so->so_flags1,
+				so->so_usecount,
+				so->so_retaincnt,
+				so->xso_filter_flags);
 	}
 
 	if (sa->sun_len)
 		printf(" %.*s",
-		       (int)(sa->sun_len - offsetof(struct sockaddr_un, sun_path)),
-		       sa->sun_path);
+				(int)(sa->sun_len - offsetof(struct sockaddr_un, sun_path)),
+				sa->sun_path);
 	putchar('\n');
 }
 
@@ -252,13 +253,13 @@ unixpr_n(void)
 		if (xug != oxug && xug->xug_gen != oxug->xug_gen) {
 			if (oxug->xug_count > xug->xug_count) {
 				printf("Some %s sockets may have been deleted.\n",
-				       socktype[type]);
+						socktype[type]);
 			} else if (oxug->xug_count < xug->xug_count) {
 				printf("Some %s sockets may have been created.\n",
-				       socktype[type]);
+						socktype[type]);
 			} else {
 				printf("Some %s sockets may have been created or deleted\n",
-				       socktype[type]);
+						socktype[type]);
 			}
 		}
 		free(buf);

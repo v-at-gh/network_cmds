@@ -61,12 +61,17 @@
 #include <sys/param.h>
 #include <sys/queue.h>
 #include <sys/socket.h>
-#include <sys/socketvar.h>
+// #include <sys/socketvar.h>
+#include "sys/socketvar.h"
 #include <sys/sysctl.h>
-#include <sys/sys_domain.h>
-#include <sys/kern_control.h>
-#include <sys/kern_event.h>
-#include <net/ntstat.h>
+// #include <sys/sys_domain.h>
+#include "sys/sys_domain.h"
+// #include <sys/kern_control.h>
+#include "sys/kern_control.h"
+// #include <sys/kern_event.h>
+#include "sys/kern_event.h"
+// #include <net/ntstat.h>
+#include "net/ntstat.h"
 
 #include <errno.h>
 #include <err.h>
@@ -91,8 +96,7 @@ struct xgen_n {
 #define	ALL_XGN_KIND_KCB (XSO_SOCKET | XSO_RCVBUF | XSO_SNDBUF | XSO_STATS | XSO_KCB)
 
 void
-systmpr(uint32_t proto,
-	char *name, int af)
+systmpr(uint32_t proto, char *name, int af)
 {
 	const char *mibvar;
 	size_t len;

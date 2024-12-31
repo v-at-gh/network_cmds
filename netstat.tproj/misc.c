@@ -28,8 +28,10 @@
 
 #include <sys/sysctl.h>
 
-#include <net/if_ports_used.h>
-#include <net/net_api_stats.h>
+// #include <net/if_ports_used.h>
+#include "net/if_ports_used.h"
+// #include <net/net_api_stats.h>
+#include "net/net_api_stats.h"
 #include <err.h>
 #include <stdio.h>
 #include <strings.h>

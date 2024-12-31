@@ -42,7 +42,8 @@
 
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <netinet/mptcp_var.h>
+// #include <netinet/mptcp_var.h>
+#include "netinet/mptcp_var.h"
 
 #include <arpa/inet.h>
 
@@ -106,8 +107,8 @@ printmptcp(int id, conninfo_mptcp_t *mptcp)
 			inet6print(&SIN6(dst)->sin6_addr, SIN6(dst)->sin6_port,
 			    "tcp", nflag);
 			break;
-		}
 #endif
+		}
 #undef SIN
 #undef SIN6
 		tcpci = (conninfo_tcp_t*)((caddr_t)flow +

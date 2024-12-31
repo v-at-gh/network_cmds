@@ -247,9 +247,7 @@ int	unit;		/* unit number for above */
 int	af;		/* address family */
 
 int
-main(argc, argv)
-	int argc;
-	char *argv[];
+main(int argc, char *argv[])
 {
 	register struct protox *tp = NULL;  /* for printing cblocks & stats */
 	int ch;
@@ -346,8 +344,8 @@ main(argc, argv)
 		case 'p':
 			if ((tp = name2protox(optarg)) == NULL) {
 				errx(1, 
-				     "%s: unknown or uninstrumented protocol",
-				     optarg);
+					"%s: unknown or uninstrumented protocol",
+					optarg);
 			}
 			pflag = 1;
 			break;
@@ -437,9 +435,10 @@ main(argc, argv)
 	}
 	if (qflag || Qflag) {
 		if (interface == NULL) {
-			fprintf(stderr, "%s statistics option "
-			    "requires interface name\n", qflag ? "Queue" :
-			    "Polling");
+			fprintf(stderr,
+				"%s statistics option "
+				"requires interface name\n",
+				qflag ? "Queue" : "Polling");
 		} else if (qflag) {
 			aqstatpr();
 		} else {
@@ -522,9 +521,7 @@ main(argc, argv)
  * is not in the namelist, ignore this one.
  */
 static void
-printproto(tp, name)
-	register struct protox *tp;
-	char *name;
+printproto(register struct protox *tp, char *name)
 {
 	void (*pr)(uint32_t, char *, int);
 	uint32_t off;
@@ -535,7 +532,7 @@ printproto(tp, name)
 				intpr(tp->pr_istats);
 			else if (vflag)
 				printf("%s: no per-interface stats routine\n",
-				    tp->pr_name);
+					tp->pr_name);
 			return;
 		}
 		else {
@@ -543,7 +540,7 @@ printproto(tp, name)
 			if (!pr) {
 				if (pflag && vflag)
 					printf("%s: no stats routine\n",
-					    tp->pr_name);
+						tp->pr_name);
 				return;
 			}
 			off = tp->pr_protocol;
@@ -633,13 +630,13 @@ name2protox(char *name)
 
 #define	NETSTAT_USAGE "\
 Usage:	netstat [-AaLlnW] [-f address_family | -p protocol]\n\
-	netstat [-gilns] [-f address_family]\n\
-	netstat -i | -I interface [-w wait] [-abdgRtS]\n\
-	netstat -s [-s] [-f address_family | -p protocol] [-w wait]\n\
-	netstat -i | -I interface -s [-f address_family | -p protocol]\n\
-	netstat -m [-m]\n\
-	netstat -r [-Aaln] [-f address_family]\n\
-	netstat -rs [-s]\n\
+        netstat [-gilns] [-f address_family]\n\
+        netstat -i | -I interface [-w wait] [-abdgRtS]\n\
+        netstat -s [-s] [-f address_family | -p protocol] [-w wait]\n\
+        netstat -i | -I interface -s [-f address_family | -p protocol]\n\
+        netstat -m [-m]\n\
+        netstat -r [-Aaln] [-f address_family]\n\
+        netstat -rs [-s]\n\
 "
 
 static void
@@ -652,15 +649,14 @@ usage(void)
 int
 print_time(void)
 {
-    time_t now;
-    struct tm tm;
-    int num_written = 0;
-    
-    (void) time(&now);
-    (void) localtime_r(&now, &tm);
-    
-    num_written += printf("%02d:%02d:%02d ", tm.tm_hour, tm.tm_min, tm.tm_sec);
-    
-    return (num_written);
-}
+	time_t now;
+	struct tm tm;
+	int num_written = 0;
 
+	(void) time(&now);
+	(void) localtime_r(&now, &tm);
+
+	num_written += printf("%02d:%02d:%02d ", tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+	return (num_written);
+}
