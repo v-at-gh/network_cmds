@@ -1526,9 +1526,9 @@ print_fq_codel_stats(int pri, struct fq_codel_classstats *fqst, uint8_t grp)
 	}
 }
 
-#define NSEC_PER_SEC    1000000000      /* nanoseconds per second */
-#define USEC_PER_SEC    1000000		/* microseconds per second */
-#define MSEC_PER_SEC    1000		/* milliseconds per second */
+#define NSEC_PER_SEC 1000000000 /* nanoseconds per second */
+#define USEC_PER_SEC 1000000   /* microseconds per second */
+#define MSEC_PER_SEC 1000      /* milliseconds per second */
 
 static char *
 nsec_to_str(unsigned long long nsec)

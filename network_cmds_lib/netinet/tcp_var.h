@@ -1573,55 +1573,146 @@ struct  xtcpcb64 {
 
 #ifdef PRIVATE
 
+/**
+ * struct `xtcpcb_n` - Representation of a TCP control block (TCPCB) in the kernel
+ *
+ * This structure encapsulates detailed state information about a TCP connection
+ * as maintained by the kernel. It provides a comprehensive snapshot of the TCP
+ * control block, including state, window sizes, sequence numbers, and other
+ * essential metrics. It is typically used in network debugging tools or by
+ * system-level applications that interact with kernel-level TCP state.
+ *
+ * Fields:
+ *
+ * @xt_len: Length of this structure, in bytes.
+ *          Ensures compatibility and serves as a marker for buffer parsing.
+ *
+ * @xt_kind: Type identifier for the structure. For TCP control blocks, this is
+ *           defined as `XSO_TCPCB`.
+ *
+ * @t_segq: Pointer to the segment queue, used for buffering out-of-order packets.
+ *
+ * @t_dupacks: Count of consecutive duplicate acknowledgments received.
+ *             Typically used in TCP congestion control to trigger fast retransmit.
+ *
+ * @t_timer: Array of TCP timers. Contains timers for retransmission, persistence,
+ *           keepalive, and 4MSL timeouts (defined by `TCPT_NTIMERS_EXT`).
+ *
+ * @t_state: Current state of the TCP connection, represented as an integer.
+ *           States include CLOSED, LISTEN, SYN_SENT, ESTABLISHED, etc.
+ *
+ * @t_flags: TCP flags indicating various state information or options.
+ *
+ * @t_force: Flag indicating whether to force the transmission of a byte, typically
+ *           used during persist states.
+ *
+ * Sequence Numbers:
+ * - @snd_una: The oldest unacknowledged sequence number in the send buffer.
+ * - @snd_max: The highest sequence number sent, used to detect retransmissions.
+ * - @snd_nxt: The next sequence number to send.
+ * - @snd_up: The send urgent pointer.
+ * - @snd_wl1: Sequence
+ * - @snd_wl2: and acknowledgment numbers used for window updates.
+ * - @iss: The initial send sequence number for the connection.
+ * - @irs: The initial receive sequence number for the connection.
+ * - @rcv_nxt: The next expected sequence number from the peer.
+ * - @rcv_adv: The peer's advertised window size.
+ * - @rcv_up: The receive urgent pointer.
+ *
+ * Window Sizes:
+ * - @rcv_wnd: The current receive window size.
+ * - @snd_wnd: The current send window size.
+ * - @snd_cwnd: The congestion-controlled window size.
+ * - @snd_ssthresh: The slow start threshold for congestion control.
+ *
+ * Timing and Performance Metrics:
+ * - @t_rcvtime: Timestamp of the last packet received.
+ * - @t_starttime: Timestamp when the connection was established.
+ * - @t_rtttime: Timestamp when round-trip time (RTT) measurement started.
+ * - @t_rtseq: The sequence number being measured for RTT.
+ * - @t_rxtcur: Current retransmission timeout (in ticks).
+ * - @t_srtt: Smoothed round-trip time.
+ * - @t_rttvar: Variance in round-trip time.
+ * - @t_rttmin: Minimum round-trip time observed.
+ * - @t_rttupdated: Number of RTT samples taken.
+ *
+ * Congestion Control:
+ * - @max_sndwnd: Largest send window observed from the peer.
+ * - @snd_cwnd_prev, @snd_ssthresh_prev: Previous congestion control parameters
+ *                                       before retransmission.
+ * - @snd_recover: Sequence number used during fast recovery.
+ *
+ * Errors:
+ * - @t_softerror: A non-critical error not yet reported to the application.
+ *
+ * Out-of-Band Data:
+ * - @t_oobflags: Flags indicating out-of-band data status.
+ * - @t_iobc: Last input character from out-of-band data.
+ *
+ * RFC 1323 (TCP Extensions for High Performance):
+ * - @snd_scale, @rcv_scale: Scaling factors for send and receive windows.
+ * - @request_r_scale, @requested_s_scale: Pending scaling factors for negotiation.
+ * - @ts_recent: Most recent timestamp echoed.
+ * - @ts_recent_age: Time since the last timestamp was updated.
+ * - @last_ack_sent: The last acknowledgment number sent.
+ *
+ * RFC 1644 (TCP Extensions for Transactions):
+ * - @cc_send, @cc_recv: Connection count values for send and receive paths.
+ *
+ * Usage:
+ * - The `xtcpcb_n` structure is used in debugging and analysis tools to inspect
+ *   the internal state of TCP connections.
+ * - The fields allow detailed performance tuning and diagnostics by providing
+ *   fine-grained insight into TCP behaviors, congestion control, and timing.
+ *
+ * Notes:
+ * - All sequence numbers (`tcp_seq`) and timers are defined according to the
+ *   TCP/IP protocol standards.
+ * - Many fields directly correlate to those defined in the TCP implementation of
+ *   the kernel.
+ */
 struct  xtcpcb_n {
-	u_int32_t               xt_len;
-	u_int32_t                       xt_kind;                /* XSO_TCPCB */
+	u_int32_t xt_len;
+	u_int32_t xt_kind;              /* XSO_TCPCB */
 
-	u_int64_t t_segq;
-	int     t_dupacks;              /* consecutive dup acks recd */
-
+	u_int64_t t_segq;               /* Pointer to the segment queue */
+	int    t_dupacks;               /* consecutive dup acks recd */
 	int t_timer[TCPT_NTIMERS_EXT];  /* tcp timers */
+	int      t_state;               /* state of this connection */
+	u_int    t_flags;
+	int      t_force;               /* 1 if forcing out a byte */
 
-	int     t_state;                /* state of this connection */
-	u_int   t_flags;
-
-	int     t_force;                /* 1 if forcing out a byte */
-
+	// Sequence Numbers:
 	tcp_seq snd_una;                /* send unacknowledged */
 	tcp_seq snd_max;                /* highest sequence number sent;
-	                                 * used to recognize retransmits
-	                                 */
+	                                 * used to recognize retransmits */
 	tcp_seq snd_nxt;                /* send next */
 	tcp_seq snd_up;                 /* send urgent pointer */
-
 	tcp_seq snd_wl1;                /* window update seg seq number */
 	tcp_seq snd_wl2;                /* window update seg ack number */
 	tcp_seq iss;                    /* initial send sequence number */
 	tcp_seq irs;                    /* initial receive sequence number */
-
 	tcp_seq rcv_nxt;                /* receive next */
 	tcp_seq rcv_adv;                /* advertised window */
 	u_int32_t rcv_wnd;              /* receive window */
 	tcp_seq rcv_up;                 /* receive urgent pointer */
-
+	// Window Sizes:
 	u_int32_t snd_wnd;              /* send window */
 	u_int32_t snd_cwnd;             /* congestion-controlled window */
 	u_int32_t snd_ssthresh;         /* snd_cwnd size threshold for
 	                                 * for slow start exponential to
-	                                 * linear switch
-	                                 */
+	                                 * linear switch */
 	u_int   t_maxopd;               /* mss plus options */
 
+	// Timing and Performance Metrics:
 	u_int32_t t_rcvtime;            /* time at which a packet was received */
 	u_int32_t t_starttime;          /* time connection was established */
 	int     t_rtttime;              /* round trip time */
 	tcp_seq t_rtseq;                /* sequence number being timed */
-
 	int     t_rxtcur;               /* current retransmit value (ticks) */
 	u_int   t_maxseg;               /* maximum segment size */
 	int     t_srtt;                 /* smoothed round-trip time */
 	int     t_rttvar;               /* variance in round-trip time */
-
 	int     t_rxtshift;             /* log(2) of rexmt exp. backoff */
 	u_int   t_rttmin;               /* minimum rtt allowed */
 	u_int32_t t_rttupdated;         /* number of times rtt sampled */
@@ -1659,18 +1750,18 @@ struct  xtcpcb_n {
  * and thus an "ALPHA" of 0.875.  rttvar has 4 bits to the right of the
  * binary point, and is smoothed with an ALPHA of 0.75.
  */
-#define TCP_RTT_SCALE           32      /* multiplier for srtt; 3 bits frac. */
-#define TCP_RTT_SHIFT           5       /* shift for srtt; 5 bits frac. */
-#define TCP_RTTVAR_SCALE        16      /* multiplier for rttvar; 4 bits */
-#define TCP_RTTVAR_SHIFT        4       /* shift for rttvar; 4 bits */
-#define TCP_DELTA_SHIFT         2       /* see tcp_input.c */
+#define TCP_RTT_SCALE    32  /* multiplier for srtt; 3 bits frac. */
+#define TCP_RTT_SHIFT    5   /* shift for srtt; 5 bits frac. */
+#define TCP_RTTVAR_SCALE 16  /* multiplier for rttvar; 4 bits */
+#define TCP_RTTVAR_SHIFT 4   /* shift for rttvar; 4 bits */
+#define TCP_DELTA_SHIFT  2   /* see tcp_input.c */
 
 struct tcpprobereq {
-	u_int64_t       ifindex;                /* Optional interface index for TCP keep-alive probing */
-	u_int64_t       enable;                 /* Flag to enable or disable probing (1=on, 0=off)*/
-	u_int64_t       filter_flags;           /* Optional flags for filtering interfaces per ntstat.h (NSTAT_IFNET_IS_*) */
-	u_int32_t       reserved;               /* Expansion */
-	u_int32_t       reserved2;              /* Expansion */
+	u_int64_t       ifindex;         /* Optional interface index for TCP keep-alive probing */
+	u_int64_t       enable;          /* Flag to enable or disable probing (1=on, 0=off)*/
+	u_int64_t       filter_flags;    /* Optional flags for filtering interfaces per ntstat.h (NSTAT_IFNET_IS_*) */
+	u_int32_t       reserved;        /* Expansion */
+	u_int32_t       reserved2;       /* Expansion */
 };
 
 #endif /* PRIVATE */

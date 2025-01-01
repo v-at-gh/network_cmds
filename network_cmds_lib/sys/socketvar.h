@@ -503,6 +503,75 @@ struct  xsocket64 {
 #define XSO_EVT         0x100
 #define XSO_UNPCB       0x200
 
+/**
+ * struct `xsocket_n` - Representation of a socket's state in the kernel
+ *
+ * This structure provides detailed information about a socket, including its
+ * configuration, state, and associated protocol and process metadata. It is
+ * primarily used for debugging, monitoring, and tools that interact with the
+ * kernel's networking stack.
+ *
+ * Fields:
+ *
+ * General Information:
+ * - @xso_len: Length of this structure in bytes.
+ *   Helps in determining the structure size during parsing or copying.
+ * - @xso_kind: Type identifier for this structure. For sockets, this is defined as `XSO_SOCKET`.
+ * - @xso_so: Kernel pointer to the socket structure. Acts as a convenient handle to locate the socket in memory.
+ *
+ * Socket Type and Options:
+ * - @so_type: Socket type (e.g., SOCK_STREAM, SOCK_DGRAM, etc.).
+ * - @so_options: Configuration options set for the socket (e.g., SO_REUSEADDR, SO_KEEPALIVE).
+ * - @so_linger: Linger time for the socket, in seconds. Controls behavior during socket closure.
+ *
+ * Socket State and Protocol:
+ * - @so_state: Current state of the socket (e.g., connected, listening).
+ * - @so_pcb: Pointer to the protocol control block (PCB) associated with this socket.
+ * - @xso_protocol: Protocol used by the socket (e.g., TCP, UDP).
+ * - @xso_family: Protocol family (e.g., AF_INET for IPv4, AF_INET6 for IPv6).
+ *
+ * Queues and Buffer Management:
+ * - @so_qlen: Current length of the queue for incoming connections.
+ * - @so_incqlen: Length of the incomplete connection queue.
+ * - @so_qlimit: Maximum length of the connection queue.
+ * - @so_timeo: Timeout value for socket operations, in ticks.
+ *
+ * Error and Process Information:
+ * - @so_error: Error code associated with the socket.
+ * - @so_pgid: Process group ID for the socket. Used for signaling and process-related operations.
+ *
+ * Data Transfer Information:
+ * - @so_oobmark: Out-of-band mark position in the socket buffer.
+ *
+ * User and Process Metadata:
+ * - @so_uid: User ID associated with the socket. Indicates the owner of the socket.
+ * - @so_last_pid: Last process ID to access the socket.
+ * - @so_e_pid: Effective process ID associated with the socket.
+ *
+ * Generation and Flags:
+ * - @so_gencnt: Generation count of the socket. Tracks socket lifecycle changes.
+ * - @so_flags: Flags representing the socket's state or behavior.
+ * - @so_flags1: Additional flags for extended attributes.
+ *
+ * Reference Counters:
+ * - @so_usecount: Number of active references to the socket.
+ * - @so_retaincnt: Number of retained references to the socket.
+ *
+ * Filtering:
+ * - @xso_filter_flags: Flags related to socket-level filtering operations.
+ *
+ * Usage:
+ * - The `xsocket_n` structure provides a comprehensive view of a socket's
+ *   state and configuration, making it invaluable for monitoring tools,
+ *   network debuggers, and diagnostic utilities.
+ * - It is particularly useful in tools that enumerate sockets, analyze network
+ *   activity, or debug issues in the kernel's networking stack.
+ *
+ * Notes:
+ * - This structure supports sockets across various protocol families (e.g., IPv4, IPv6).
+ * - Many fields correspond directly to attributes maintained by the kernel for
+ *   active sockets, and the structure is typically populated during socket creation.
+ */
 struct  xsocket_n {
 	u_int32_t               xso_len;        /* length of this structure */
 	u_int32_t               xso_kind;       /* XSO_SOCKET */
@@ -540,6 +609,48 @@ struct  xsocket_n {
 #define XSOFF_CFIL      0x04    /* content filter attached */
 #define XSOFF_FLOW_DIV  0x08    /* flow divert attached */
 
+/**
+ * struct `xsockbuf_n` - Representation of a socket buffer's state
+ *
+ * This structure provides detailed statistics about a socket buffer (send or receive)
+ * including capacity, utilization, and configuration flags.
+ *
+ * Fields:
+ *
+ * General Information:
+ * - @xsb_len: Length of this structure in bytes.
+ *   Used for size validation during parsing or copying.
+ * - @xsb_kind: Type identifier for this buffer.
+ *   Can be either `XSO_RCVBUF` for the receive buffer or `XSO_SNDBUF` for the send buffer.
+ *
+ * Capacity and Utilization:
+ * - @sb_cc: Current number of bytes in the buffer.
+ *   Indicates the amount of data queued in the buffer.
+ * - @sb_hiwat: High-water mark for the buffer.
+ *   Represents the maximum allowable size of the buffer.
+ * - @sb_mbcnt: Current number of memory blocks in use by the buffer.
+ * - @sb_mbmax: Maximum number of memory blocks allowed for the buffer.
+ *
+ * Low-Water Mark and Timeout:
+ * - @sb_lowat: Low-water mark for the buffer.
+ *   Minimum amount of space that must be available to wake up a process waiting for space.
+ * - @sb_timeo: Timeout value for socket buffer operations, in ticks.
+ *
+ * Flags:
+ * - @sb_flags: Flags describing the buffer's state or configuration.
+ *   For example, flags may indicate whether the buffer is full, locked, or in use.
+ *
+ * Usage:
+ * - The `xsockbuf_n` structure is used to gather detailed metrics about socket buffer
+ *   utilization and configuration, which is critical for monitoring and debugging
+ *   network applications.
+ * - It provides insights into the send and receive queues of a socket.
+ *
+ * Notes:
+ * - This structure is closely associated with the `xsocket_n` structure.
+ * - Understanding buffer states is essential for diagnosing issues like send/receive
+ *   throttling, excessive memory usage, or network congestion.
+ */
 struct xsockbuf_n {
 	u_int32_t               xsb_len;        /* length of this structure */
 	u_int32_t               xsb_kind;       /* XSO_RCVBUF or XSO_SNDBUF */
@@ -552,6 +663,38 @@ struct xsockbuf_n {
 	short                   sb_timeo;
 };
 
+/**
+ * struct `xsockstat_n` - Representation of extended socket statistics
+ *
+ * This structure encapsulates extended statistics for a socket, including
+ * detailed per-traffic-class metrics.
+ *
+ * Fields:
+ *
+ * General Information:
+ * - @xst_len: Length of this structure in bytes.
+ *   Ensures compatibility and size validation when accessing the structure.
+ * - @xst_kind: Type identifier for this structure. Defined as `XSO_STATS` for socket statistics.
+ *
+ * Traffic-Class Statistics:
+ * - @xst_tc_stats: Array of statistics for each traffic class.
+ *   - `SO_TC_STATS_MAX` defines the maximum number of traffic classes supported.
+ *   - Each element is of type `struct data_stats` and contains detailed metrics
+ *     about the associated traffic class, such as transmitted/received bytes or packets.
+ *
+ * Usage:
+ * - The `xsockstat_n` structure is designed for advanced monitoring and debugging
+ *   of socket performance, particularly in scenarios where traffic-class differentiation
+ *   is relevant.
+ * - It is especially useful in quality-of-service (QoS) configurations, where traffic
+ *   is categorized into multiple classes for prioritized handling.
+ *
+ * Notes:
+ * - The structure's `data_stats` entries provide granular insights into the socket's
+ *   behavior across different traffic classes, aiding in fine-tuned diagnostics.
+ * - Tools that interact with this structure often aggregate or present metrics in a
+ *   user-friendly format, such as graphs or tables, for easier interpretation.
+ */
 struct xsockstat_n {
 	u_int32_t               xst_len;        /* length of this structure */
 	u_int32_t               xst_kind;       /* XSO_STATS */

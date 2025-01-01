@@ -476,6 +476,76 @@ struct xinpcb_list_entry {
 	u_int64_t   le_prev;
 };
 
+/**
+ * struct xinpcb_n - Representation of an Internet Protocol (IP) Control Block (INPCB)
+ *
+ * This structure captures the state of a network protocol's endpoint within the kernel.
+ * It represents a TCP or UDP socket's association with its IP address and port, along
+ * with protocol-specific attributes. The structure is essential for tools and programs
+ * that analyze or debug the networking stack at the socket layer.
+ *
+ * Fields:
+ *
+ * @xi_len: Length of this structure in bytes.
+ *          Ensures compatibility and aids in buffer parsing.
+ *
+ * @xi_kind: Type identifier for this structure. For INPCBs, it is defined as `XSO_INPCB`.
+ *
+ * @xi_inpp: Kernel pointer to the inpcb instance. Useful as a handle for referencing the
+ *           associated data structure in kernel memory.
+ *
+ * Ports:
+ * - @inp_fport: The foreign (remote) port number.
+ * - @inp_lport: The local (host) port number.
+ *
+ * Protocol-Specific PCB:
+ * - @inp_ppcb: Pointer to the per-protocol PCB (Protocol Control Block), e.g., TCP or UDP-specific state.
+ *
+ * Generation Count:
+ * - @inp_gencnt: Generation count of the current INPCB instance. This field is used
+ *                to track the lifecycle of the structure across updates or deletions.
+ *
+ * Flags:
+ * - @inp_flags: Generic flags related to the IP/datagram stack.
+ * - @inp_flags2: Additional flags for extended attributes or features.
+ *
+ * Flow and Protocol Information:
+ * - @inp_flow: Flow label or identifier, used in some IP routing and quality-of-service implementations.
+ * - @inp_flowhash: A hash value of the flow, used for load balancing or debugging.
+ * - @inp_vflag: Protocol family version flag. Differentiates between IPv4 and IPv6.
+ * - @inp_ip_ttl: Time-to-live (TTL) value for outgoing packets.
+ * - @inp_ip_p: Protocol number (e.g., TCP, UDP, or other IP-level protocols).
+ *
+ * Address Information:
+ * - @inp_dependfaddr: Union holding the foreign (remote) address.
+ *   - For IPv4: Uses `struct in_addr_4in6` for compatibility with mixed IPv4/IPv6 stacks.
+ *   - For IPv6: Uses `struct in6_addr`.
+ * - @inp_dependladdr: Union holding the local (host) address.
+ *   - For IPv4: Uses `struct in_addr_4in6`.
+ *   - For IPv6: Uses `struct in6_addr`.
+ *
+ * IPv4-Specific Fields:
+ * - @inp_depend4.inp4_ip_tos: Type of Service (TOS) field for IPv4. Used for QoS and prioritization.
+ *
+ * IPv6-Specific Fields:
+ * - @inp_depend6.inp6_hlim: Hop limit for IPv6 packets (equivalent to TTL in IPv4).
+ * - @inp_depend6.inp6_cksum: Checksum offset for IPv6. Adjusted for transport layer protocols.
+ * - @inp_depend6.inp6_ifindex: Index of the network interface used for the connection.
+ * - @inp_depend6.inp6_hops: Number of hops traversed for the connection.
+ *
+ * Usage:
+ * - The `xinpcb_n` structure is vital for socket monitoring, debugging, and performance
+ *   analysis tools that interface with the kernel's network stack.
+ * - It provides insight into the endpoint's state, including address, port, flags, and protocol details.
+ *
+ * Notes:
+ * - This structure supports both IPv4 and IPv6, with fields and unions to handle protocol-specific
+ *   details efficiently.
+ * - The address unions and protocol-specific fields ensure compatibility with dual-stack networking
+ *   environments.
+ * - Many fields are populated or derived during socket creation and protocol-level interactions
+ *   in the kernel.
+ */
 struct  xinpcb_n {
 	u_int32_t       xi_len;         /* length of this structure */
 	u_int32_t       xi_kind;        /* XSO_INPCB */
@@ -511,6 +581,51 @@ struct  xinpcb_n {
 };
 #endif /* PRIVATE */
 
+/**
+ * struct `xinpgen` - Metadata structure for PCB (Protocol Control Block) iteration
+ *
+ * This structure provides metadata for iterating over protocol control blocks (PCBs)
+ * in the networking stack. It is typically used when retrieving lists of sockets
+ * or PCBs via system calls or kernel-level APIs. The `xinpgen` structure is often
+ * found as a header or marker within a buffer containing multiple PCBs.
+ *
+ * Fields:
+ * @xig_len: Length of this structure, in bytes.
+ *           Indicates the size of the `xinpgen` structure itself and ensures
+ *           compatibility during parsing or iteration.
+ *
+ * @xig_count: Number of PCBs currently available at the time of the call.
+ *             This field gives the total count of PCBs present in the system
+ *             when the data was captured.
+ *
+ * @xig_gen: Generation count for PCBs at this time.
+ *           Used to identify changes in the PCB list between iterations or
+ *           successive calls. This is particularly useful for detecting modifications
+ *           (e.g., additions or removals of PCBs) while iterating over them.
+ *
+ * @xig_sogen: Current socket generation count.
+ *             Similar to `xig_gen`, but specifically tracks the generation
+ *             count for sockets. This helps in identifying socket-related changes
+ *             over time, such as socket creation, closure, or updates.
+ *
+ * Usage:
+ * - The `xinpgen` structure is often used as a header or delimiter in buffers
+ *   containing protocol-specific PCB structures (e.g., `inpcb` for IPv4 or IPv6).
+ * - Iteration over PCBs can start after the `xinpgen` header, using its metadata
+ *   to validate and manage the iteration process.
+ *
+ * Example Workflow:
+ * 1. Call a kernel-level API or use `sysctlbyname` to retrieve a buffer of PCBs.
+ * 2. Start parsing the buffer by reading the `xinpgen` structure at the beginning.
+ * 3. Use `xig_count` and `xig_gen` for validation and consistency checks.
+ * 4. Iterate through the PCB structures following the `xinpgen` header.
+ *
+ * Notes:
+ * - The structure is designed to facilitate efficient and consistent iteration
+ *   through potentially large lists of PCBs.
+ * - The use of generation counters ensures that changes in the PCB list can
+ *   be detected and handled appropriately during iteration.
+ */
 struct  xinpgen {
 	u_int32_t       xig_len;        /* length of this structure */
 	u_int           xig_count;      /* number of PCBs at this time */

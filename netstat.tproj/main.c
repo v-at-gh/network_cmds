@@ -103,61 +103,115 @@ char const copyright[] =
  *
  */
 
+/**
+ * struct `protox` - Protocol Descriptor Structure
+ *
+ * This structure defines the interface for handling various network protocols
+ * within the application. It encapsulates function pointers for printing
+ * control blocks, statistics, and per-interface statistics, along with the
+ * protocol's name and its corresponding protocol number.
+ *
+ * Fields:
+ *
+ * @pr_cblocks:
+ *     - Type: `void (*)(uint32_t, char *, int)`
+ *     - Description:
+ *         Function pointer to the routine responsible for printing
+ *         the protocol's control blocks. Control blocks represent
+ *         individual instances of protocol-related data structures
+ *         (e.g., TCP connections).
+ *
+ * @pr_stats:
+ *     - Type: `void (*)(uint32_t, char *, int)`
+ *     - Description:
+ *         Function pointer to the routine responsible for printing
+ *         the protocol's statistical data. This includes metrics
+ *         such as the number of active connections, packet counts,
+ *         error rates, and other relevant statistics.
+ *
+ * @pr_istats:
+ *     - Type: `void (*)(char *)`
+ *     - Description:
+ *         Function pointer to the routine responsible for printing
+ *         per-interface statistics for the protocol. This is useful
+ *         for protocols that maintain separate statistics for each
+ *         network interface.
+ *
+ * @pr_name:
+ *     - Type: `char *`
+ *     - Description:
+ *         A string representing the well-known name of the protocol
+ *         (e.g., "tcp", "udp", "icmp"). This name is used for display
+ *         purposes and to identify the protocol in output.
+ *
+ * @pr_protocol:
+ *     - Type: `int`
+ *     - Description:
+ *         The numerical identifier of the protocol, typically defined
+ *         by standard protocol numbers (e.g., `IPPROTO_TCP`, `IPPROTO_UDP`).
+ *
+ * Usage:
+ *     The `protox` structure is utilized as part of a lookup table to
+ *     manage and display information about various network protocols.
+ *     Each entry in the `protox` array corresponds to a specific
+ *     protocol, providing the necessary functions and identifiers
+ *     to handle its data.
+ */
 struct protox {
-	void	(*pr_cblocks)(uint32_t, char *, int);
-					/* control blocks printing routine */
-	void	(*pr_stats)(uint32_t, char *, int);
-					/* statistics printing routine */
-	void	(*pr_istats)(char *);	/* per/if statistics printing routine */
-	char	*pr_name;		/* well-known name */
-	int	pr_protocol;
-} protox[] = {
-	{ protopr,	tcp_stats,	NULL,	"tcp",	IPPROTO_TCP },
-	{ protopr,	udp_stats,	NULL,	"udp",	IPPROTO_UDP },
-	{ protopr,	NULL,		NULL,	"divert", IPPROTO_DIVERT },
-	{ protopr,	ip_stats,	NULL,	"ip",	IPPROTO_RAW },
-	{ protopr,	icmp_stats,	NULL,	"icmp",	IPPROTO_ICMP },
-	{ protopr,	igmp_stats,	NULL,	"igmp",	IPPROTO_IGMP },
+	void (*pr_cblocks)(uint32_t, char *, int); /* control blocks printing routine */
+	void (*pr_stats)(uint32_t, char *, int);   /* statistics printing routine */
+	void (*pr_istats)(char *);   /* per/if statistics printing routine */
+	char  *pr_name;		/* well-known name */
+	int	   pr_protocol;
+};
+
+struct protox protox[] = {
+	{ protopr, tcp_stats,   NULL, "tcp",    IPPROTO_TCP },
+	{ protopr, udp_stats,   NULL, "udp",    IPPROTO_UDP },
+	{ protopr, NULL,        NULL, "divert", IPPROTO_DIVERT },
+	{ protopr, ip_stats,    NULL, "ip",     IPPROTO_RAW },
+	{ protopr, icmp_stats,  NULL, "icmp",   IPPROTO_ICMP },
+	{ protopr, igmp_stats,  NULL, "igmp",   IPPROTO_IGMP },
 #ifdef IPSEC
-	{ NULL,		ipsec_stats,	NULL,	"ipsec", IPPROTO_ESP},
+	{ NULL,    ipsec_stats, NULL, "ipsec",  IPPROTO_ESP},
 #endif
-	{ NULL,		arp_stats,	NULL,	"arp",	0 },
-	{ mptcppr,	mptcp_stats,	NULL,	"mptcp", IPPROTO_TCP },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ NULL,    arp_stats,	NULL, "arp",    0 },
+	{ mptcppr, mptcp_stats,	NULL, "mptcp",  IPPROTO_TCP },
+	{ NULL,    NULL,        NULL, NULL,     0 }
 };
 
 #ifdef INET6
 struct protox ip6protox[] = {
-	{ protopr,	tcp_stats,	NULL,	"tcp",	IPPROTO_TCP },
-	{ protopr,	udp_stats,	NULL,	"udp",	IPPROTO_UDP },
-	{ protopr,	ip6_stats,	ip6_ifstats,	"ip6",	IPPROTO_RAW },
-	{ protopr,	icmp6_stats,	icmp6_ifstats,	"icmp6",IPPROTO_ICMPV6 },
+	{ protopr, tcp_stats,   NULL,         "tcp",  IPPROTO_TCP },
+	{ protopr, udp_stats,   NULL,         "udp",  IPPROTO_UDP },
+	{ protopr, ip6_stats,   ip6_ifstats,  "ip6",  IPPROTO_RAW },
+	{ protopr, icmp6_stats, icmp6_ifstats,"icmp6",IPPROTO_ICMPV6 },
 #ifdef IPSEC
-	{ NULL,		ipsec_stats,	NULL,	"ipsec6", IPPROTO_ESP },
+	{ NULL,    ipsec_stats, NULL, "ipsec6", IPPROTO_ESP },
 #endif
-	{ NULL,		rip6_stats,	NULL,	"rip6",	IPPROTO_RAW },
-	{ mptcppr,	mptcp_stats,	NULL,	"mptcp", IPPROTO_TCP },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ NULL,    rip6_stats,  NULL, "rip6",   IPPROTO_RAW },
+	{ mptcppr, mptcp_stats, NULL, "mptcp",  IPPROTO_TCP },
+	{ NULL,    NULL,        NULL, NULL,     0 }
 };
 #endif /*INET6*/
 
 #ifdef IPSEC
 struct protox pfkeyprotox[] = {
-	{ NULL,		pfkey_stats,	NULL,	"pfkey", PF_KEY_V2 },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ NULL, pfkey_stats, NULL, "pfkey", PF_KEY_V2 },
+	{ NULL, NULL,        NULL, NULL,    0 }
 };
 #endif
 
 struct protox systmprotox[] = {
-	{ systmpr,	NULL,		NULL,	"reg", 0 },
-	{ systmpr,	kevt_stats,		NULL,	"kevt", SYSPROTO_EVENT },
-	{ systmpr,	kctl_stats,	NULL,	"kctl", SYSPROTO_CONTROL },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ systmpr,	NULL,       NULL, "reg",  0 },
+	{ systmpr,	kevt_stats, NULL, "kevt", SYSPROTO_EVENT },
+	{ systmpr,	kctl_stats, NULL, "kctl", SYSPROTO_CONTROL },
+	{ NULL,		NULL,       NULL, NULL,   0 }
 };
 
 struct protox nstatprotox[] = {
-	{ NULL,		print_nstat_stats,	NULL,	"nstat", 0 },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ NULL, print_nstat_stats, NULL, "nstat", 0 },
+	{ NULL, NULL, NULL, NULL, 0 }
 };
 
 struct protox ipcprotox[] = {
@@ -256,12 +310,8 @@ main(int argc, char *argv[])
 
 	while ((ch = getopt(argc, argv, "AaBbc:dFf:gI:ikLlmnP:p:qQrRsStuvWw:xz")) != -1) {
 		switch(ch) {
-		case 'A':
-			Aflag = 1;
-			break;
-		case 'a':
-			aflag = 1;
-			break;
+		case 'A': Aflag = 1; break;
+		case 'a': aflag = 1; break;
 		case 'B':
 			if (optind < argc) {
 				if (strcmp(argv[optind], "help") == 0) {
@@ -271,48 +321,30 @@ main(int argc, char *argv[])
 			}
 			Bflag = 1;
 			break;
-		case 'b':
-			bflag = 1;
-			break;
-		case 'c':
-			cflag = 1;
-			cq = atoi(optarg);
-			break;
-		case 'd':
-			dflag = 1;
-			break;
-		case 'F':
-			Fflag = 1;
-			break;
+		case 'b': bflag = 1; break;
+		case 'c': cflag = 1; cq = atoi(optarg); break;
+		case 'd': dflag = 1; break;
+		case 'F': Fflag = 1; break;
 		case 'f':
-			if (strcmp(optarg, "ipx") == 0)
-				af = AF_IPX;
-			else if (strcmp(optarg, "inet") == 0)
-				af = AF_INET;
+			if (strcmp(optarg, "ipx") == 0) af = AF_IPX;
+			else if (strcmp(optarg, "inet") == 0) af = AF_INET;
 #ifdef INET6
-			else if (strcmp(optarg, "inet6") == 0)
-				af = AF_INET6;
+			else if (strcmp(optarg, "inet6") == 0) af = AF_INET6;
 #endif /*INET6*/
 #ifdef INET6
-			else if (strcmp(optarg, "pfkey") == 0)
-				af = PF_KEY;
+			else if (strcmp(optarg, "pfkey") == 0) af = PF_KEY;
 #endif /*INET6*/
-			else if (strcmp(optarg, "unix") == 0)
-				af = AF_UNIX;
-			else if (strcmp(optarg, "systm") == 0)
-				af = AF_SYSTEM;
+			else if (strcmp(optarg, "unix") == 0) af = AF_UNIX;
+			else if (strcmp(optarg, "systm") == 0) af = AF_SYSTEM;
 #ifdef AF_VSOCK
-			else if (strcmp(optarg, "vsock") == 0)
-				af = AF_VSOCK;
+			else if (strcmp(optarg, "vsock") == 0) af = AF_VSOCK;
 #endif /*AF_VSOCK*/
 			else {
 				errx(1, "%s: unknown address family", optarg);
 			}
 			break;
 #if defined(__APPLE__)
-		case 'g':
-			gflag = 1;
-			break;
+		case 'g': gflag = 1; break;
 #endif
 		case 'I': {
 			char *cp;
@@ -323,24 +355,12 @@ main(int argc, char *argv[])
 			unit = atoi(cp);
 			break;
 		}
-		case 'i':
-			iflag = 1;
-			break;
-		case 'l':
-			lflag += 1;
-			break;
-		case 'L':
-			Lflag = 1;
-			break;
-		case 'm':
-			mflag++;
-			break;
-		case 'n':
-			nflag = 1;
-			break;
-		case 'P':
-			prioflag = atoi(optarg);
-			break;
+		case 'i': iflag = 1; break;
+		case 'l': lflag += 1; break;
+		case 'L': Lflag = 1; break;
+		case 'm': mflag++; break;
+		case 'n': nflag = 1; break;
+		case 'P': prioflag = atoi(optarg); break;
 		case 'p':
 			if ((tp = name2protox(optarg)) == NULL) {
 				errx(1, 
@@ -349,50 +369,21 @@ main(int argc, char *argv[])
 			}
 			pflag = 1;
 			break;
-		case 'q':
-			qflag++;
-			break;
-		case 'Q':
-			Qflag++;
-			break;
-		case 'R':
-			Rflag = 1;
-			break;
-		case 'r':
-			rflag = 1;
-			break;
-		case 's':
-			++sflag;
-			break;
-		case 'S':
-			Sflag = 1;
-			break;
-		case 't':
-			tflag = 1;
-			break;
-		case 'u':
-			af = AF_UNIX;
-			break;
-		case 'v':
-			vflag++;
-			break;
-		case 'W':
-			Wflag = 1;
-			break;
-		case 'w':
-			interval = atoi(optarg);
-			iflag = 1;
-			break;
-		case 'x':
-			xflag = 1;
-			Rflag = 1;
-			break;
-		case 'z':
-			zflag = 1;
-			break;
+		case 'q': qflag++; break;
+		case 'Q': Qflag++; break;
+		case 'R': Rflag = 1; break;
+		case 'r': rflag = 1; break;
+		case 's': ++sflag; break;
+		case 'S': Sflag = 1; break;
+		case 't': tflag = 1; break;
+		case 'u': af = AF_UNIX; break;
+		case 'v': vflag++; break;
+		case 'W': Wflag = 1; break;
+		case 'w': interval = atoi(optarg); iflag = 1; break;
+		case 'x': xflag = 1; Rflag = 1; break;
+		case 'z': zflag = 1; break;
 		case '?':
-		default:
-			usage();
+		default: usage();
 		}
 	}
 	argv += optind;
@@ -629,7 +620,7 @@ name2protox(char *name)
 }
 
 #define	NETSTAT_USAGE "\
-Usage:	netstat [-AaLlnW] [-f address_family | -p protocol]\n\
+Usage:  netstat [-AaLlnW] [-f address_family | -p protocol]\n\
         netstat [-gilns] [-f address_family]\n\
         netstat -i | -I interface [-w wait] [-abdgRtS]\n\
         netstat -s [-s] [-f address_family | -p protocol] [-w wait]\n\

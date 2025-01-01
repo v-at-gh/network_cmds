@@ -207,13 +207,33 @@ struct xgen_n {
 #define ALL_XGN_KIND_INP (XSO_SOCKET | XSO_RCVBUF | XSO_SNDBUF | XSO_STATS | XSO_INPCB)
 #define ALL_XGN_KIND_TCP (ALL_XGN_KIND_INP | XSO_TCPCB)
 
+/**
+ * Print protocol-specific connection information.
+ *
+ * @param proto Protocol number (e.g., IPPROTO_TCP).
+ * @param name  Protocol name (e.g., "tcp").
+ * @param af    Address family (e.g., AF_INET, AF_INET6).
+ *
+ * This function gathers and displays network protocol connection details
+ * such as active Internet connections, listening sockets, and stateful
+ * data. It retrieves information using the sysctl interface and processes
+ * protocol control blocks (PCBs) for the given protocol.
+ */
 void
 protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		char *name, int af)
 {
+	// Initialization of variables to track the state of protocol processing,
+	// such as protocol control blocks (PCBs), socket buffers, and connection statistics.
+	//
+	// The variables defined here include flags to track the protocol type (`istcp`),
 	int istcp;
+	// a static variable to control the first run behavior (`first`),
+	// and various pointers to hold data structures relevant to protocol control blocks (PCBs).
 	static int first = 1;
+	// The `buf` and `next` pointers are used for memory management and iteration,
 	char *buf, *next;
+	// and `mibvar` holds the name of the sysctl variable to query.
 	const char *mibvar;
 	struct xinpgen *xig, *oxig;
 	struct xgen_n *xgn;
@@ -226,6 +246,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 	struct xsockstat_n *so_stat = NULL;
 	int which = 0;
 
+	// Determine the protocol type and corresponding sysctl MIB variable
 	istcp = 0;
 	switch (proto) {
 		case IPPROTO_TCP:
@@ -236,8 +257,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 				tcp_done = 1;
 #endif
 			istcp = 1;
-			mibvar = "net.inet.tcp.pcblist_n";
-			break;
+			mibvar = "net.inet.tcp.pcblist_n"; break;
 		case IPPROTO_UDP:
 #ifdef INET6
 			if (udp_done != 0)
@@ -245,15 +265,14 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 			else
 				udp_done = 1;
 #endif
-			mibvar = "net.inet.udp.pcblist_n";
-			break;
+			mibvar = "net.inet.udp.pcblist_n"; break;
 		case IPPROTO_DIVERT:
-			mibvar = "net.inet.divert.pcblist_n";
-			break;
+			mibvar = "net.inet.divert.pcblist_n"; break;
 		default:
-			mibvar = "net.inet.raw.pcblist_n";
-			break;
+			mibvar = "net.inet.raw.pcblist_n"; break;
 	}
+
+	// Retrieve protocol-specific connection data using sysctl
 	len = 0;
 	if (sysctlbyname(mibvar, 0, &len, 0, 0) < 0) {
 		if (errno != ENOENT)
@@ -280,56 +299,53 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 	}
 
 	oxig = xig = (struct xinpgen *)buf;
+
+	// Iterate through the protocol control block list
 	for (
 		next = buf + ROUNDUP64(xig->xig_len);
 		next < buf + len;
 		next += ROUNDUP64(xgn->xgn_len)
 	) {
-		xgn = (struct xgen_n*)next;
+		// Cast the current position in the buffer to a generic structure pointer (xgen_n),
+		// representing one of several possible protocol-related structures.
+		// This allows for flexible interpretation of the data while iterating through the buffer.
+		xgn = (struct xgen_n *)next;
+
+		// Validate the length of the current structure.
+		// If the length is less than or equal to the size of the xinpgen header,
+		// it indicates an invalid or corrupted entry, or the end of valid data.
+		// Break out of the loop if such a case is encountered.
 		if (xgn->xgn_len <= sizeof(struct xinpgen))
 			break;
 
+
+		// Categorize and store protocol-specific structures (e.g., sockets, buffers)
+		// by their type to enable processing of connection details.
 		if ((which & xgn->xgn_kind) == 0) {
 			which |= xgn->xgn_kind;
 			switch (xgn->xgn_kind) {
-				case XSO_SOCKET:
-					so = (struct xsocket_n *)xgn;
-					break;
-				case XSO_RCVBUF:
-					so_rcv = (struct xsockbuf_n *)xgn;
-					break;
-				case XSO_SNDBUF:
-					so_snd = (struct xsockbuf_n *)xgn;
-					break;
-				case XSO_STATS:
-					so_stat = (struct xsockstat_n *)xgn;
-					break;
-				case XSO_INPCB:
-					inp = (struct xinpcb_n *)xgn;
-					break;
-				case XSO_TCPCB:
-					tp = (struct xtcpcb_n *)xgn;
-					break;
-				default:
-					printf("unexpected kind %d\n", xgn->xgn_kind);
-					break;
+				case XSO_SOCKET: so = (struct xsocket_n *)xgn; break;
+				case XSO_RCVBUF: so_rcv = (struct xsockbuf_n *)xgn; break;
+				case XSO_SNDBUF: so_snd = (struct xsockbuf_n *)xgn; break;
+				case XSO_STATS: so_stat = (struct xsockstat_n *)xgn; break;
+				case XSO_INPCB: inp = (struct xinpcb_n *)xgn; break;
+				case XSO_TCPCB: tp = (struct xtcpcb_n *)xgn; break;
+				default: printf("unexpected kind %d\n", xgn->xgn_kind); break;
 			}
 		} else {
-			if (vflag)
-				printf("got %d twice\n", xgn->xgn_kind);
+			if (vflag) printf("got %d twice\n", xgn->xgn_kind);
 		}
 
+		// Skip to the next block unless all required structures are present
 		if ((istcp && which != ALL_XGN_KIND_TCP) || (!istcp && which != ALL_XGN_KIND_INP))
 			continue;
 		which = 0;
 
 		/* Ignore sockets for protocols other than the desired one. */
-		if (so->xso_protocol != (int)proto)
-			continue;
+		if (so->xso_protocol != (int)proto) continue;
 
 		/* Ignore PCBs which were freed during copyout. */
-		if (inp->inp_gencnt > oxig->xig_gen)
-			continue;
+		if (inp->inp_gencnt > oxig->xig_gen) continue;
 
 		if ((af == AF_INET && (inp->inp_vflag & INP_IPV4) == 0)
 #ifdef INET6
@@ -337,8 +353,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 #endif /* INET6 */
 		    || (af == AF_UNSPEC && ((inp->inp_vflag & INP_IPV4) == 0
 #ifdef INET6
-						&& (inp->inp_vflag &
-						INP_IPV6) == 0
+						&& (inp->inp_vflag & INP_IPV6) == 0
 #endif /* INET6 */
 				)
 			)
@@ -359,11 +374,9 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		if (first) {
 			if (!Lflag) {
 				printf("Active Internet connections");
-				if (aflag)
-					printf(" (including servers)");
+				if (aflag) printf(" (including servers)");
 			} else
-				printf(
-					"Current listen queue sizes (qlen/incqlen/maxqlen)");
+				printf("Current listen queue sizes (qlen/incqlen/maxqlen)");
 			putchar('\n');
 			if (Aflag) {
 				printf("%-16.16s ", "Socket");
