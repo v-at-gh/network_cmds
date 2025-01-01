@@ -207,7 +207,7 @@ struct xgen_n {
 #define ALL_XGN_KIND_INP (XSO_SOCKET | XSO_RCVBUF | XSO_SNDBUF | XSO_STATS | XSO_INPCB)
 #define ALL_XGN_KIND_TCP (ALL_XGN_KIND_INP | XSO_TCPCB)
 
-/**
+/*
  * Print protocol-specific connection information.
  *
  * @param proto Protocol number (e.g., IPPROTO_TCP).
@@ -223,17 +223,31 @@ void
 protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		char *name, int af)
 {
-	// Initialization of variables to track the state of protocol processing,
-	// such as protocol control blocks (PCBs), socket buffers, and connection statistics.
-	//
-	// The variables defined here include flags to track the protocol type (`istcp`),
+	/*
+	 * Initialization of variables to track the state of protocol processing,
+	 * such as protocol control blocks (PCBs), socket buffers, and connection statistics.
+	 *
+	 * The variables defined here include flags to track the protocol type (`istcp`),
+	 * a static variable to control the first run behavior (`first`),
+	 * and various pointers to hold data structures relevant to protocol control blocks (PCBs).
+	 */
 	int istcp;
-	// a static variable to control the first run behavior (`first`),
-	// and various pointers to hold data structures relevant to protocol control blocks (PCBs).
+
+	/*
+	 * Variable `first` is set to `1` to print the table headers on the
+	 * first iteration of the structure traversal loop::
+	 *
+	 *     for (
+	 *         next = buf + ROUNDUP64(xig->xig_len);
+	 *         next < buf + len;
+	 *         next += ROUNDUP64(xgn->xgn_len)
+	 *     )
+	 *
+	 */
 	static int first = 1;
-	// The `buf` and `next` pointers are used for memory management and iteration,
+	/* The `buf` and `next` pointers are used for memory management and iteration, */
 	char *buf, *next;
-	// and `mibvar` holds the name of the sysctl variable to query.
+	/* and `mibvar` holds the name of the sysctl variable to query. */
 	const char *mibvar;
 	struct xinpgen *xig, *oxig;
 	struct xgen_n *xgn;
@@ -246,7 +260,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 	struct xsockstat_n *so_stat = NULL;
 	int which = 0;
 
-	// Determine the protocol type and corresponding sysctl MIB variable
+	/* Determine the protocol type and corresponding sysctl MIB variable */
 	istcp = 0;
 	switch (proto) {
 		case IPPROTO_TCP:
@@ -272,7 +286,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 			mibvar = "net.inet.raw.pcblist_n"; break;
 	}
 
-	// Retrieve protocol-specific connection data using sysctl
+	/* Retrieve protocol-specific connection data using sysctl */
 	len = 0;
 	if (sysctlbyname(mibvar, 0, &len, 0, 0) < 0) {
 		if (errno != ENOENT)
@@ -306,21 +320,27 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		next < buf + len;
 		next += ROUNDUP64(xgn->xgn_len)
 	) {
-		// Cast the current position in the buffer to a generic structure pointer (xgen_n),
-		// representing one of several possible protocol-related structures.
-		// This allows for flexible interpretation of the data while iterating through the buffer.
+
+		/*
+		 * Cast the current position in the buffer to a generic structure pointer (xgen_n),
+		 * representing one of several possible protocol-related structures.
+		 * This allows for flexible interpretation of the data while iterating through the buffer.
+		 */
 		xgn = (struct xgen_n *)next;
 
-		// Validate the length of the current structure.
-		// If the length is less than or equal to the size of the xinpgen header,
-		// it indicates an invalid or corrupted entry, or the end of valid data.
-		// Break out of the loop if such a case is encountered.
+		/*
+		 * Validate the length of the current structure.
+		 * If the length is less than or equal to the size of the xinpgen header,
+		 * it indicates an invalid or corrupted entry, or the end of valid data.
+		 * Break out of the loop if such a case is encountered.
+		 */
 		if (xgn->xgn_len <= sizeof(struct xinpgen))
 			break;
 
-
-		// Categorize and store protocol-specific structures (e.g., sockets, buffers)
-		// by their type to enable processing of connection details.
+		/*
+		 * Categorize and store protocol-specific structures (e.g., sockets, buffers)
+		 * by their type to enable processing of connection details.
+		 */
 		if ((which & xgn->xgn_kind) == 0) {
 			which |= xgn->xgn_kind;
 			switch (xgn->xgn_kind) {
@@ -336,7 +356,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 			if (vflag) printf("got %d twice\n", xgn->xgn_kind);
 		}
 
-		// Skip to the next block unless all required structures are present
+		/* Skip to the next block unless all required structures are present */
 		if ((istcp && which != ALL_XGN_KIND_TCP) || (!istcp && which != ALL_XGN_KIND_INP))
 			continue;
 		which = 0;
@@ -371,6 +391,11 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		if (Lflag && !so->so_qlimit)
 			continue;
 
+		/*
+		 * For the first iteration print the columns
+		 * of table headers based on flags provided
+		 */
+		// TODO: maybe refactor it into a separate function
 		if (first) {
 			if (!Lflag) {
 				printf("Active Internet connections");
@@ -418,6 +443,8 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 			}
 			first = 0;
 		}
+		// TODO END
+
 		if (Aflag) {
 			if (istcp)
 				printf("%16lx ", (u_long)inp->inp_ppcb);
