@@ -103,7 +103,7 @@ char const copyright[] =
  *
  */
 
-/*
+/**
  * struct `protox` - Protocol Descriptor Structure
  *
  * This structure defines the interface for handling various network protocols

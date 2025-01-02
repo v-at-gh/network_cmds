@@ -207,7 +207,7 @@ struct xgen_n {
 #define ALL_XGN_KIND_INP (XSO_SOCKET | XSO_RCVBUF | XSO_SNDBUF | XSO_STATS | XSO_INPCB)
 #define ALL_XGN_KIND_TCP (ALL_XGN_KIND_INP | XSO_TCPCB)
 
-/*
+/**
  * Print protocol-specific connection information.
  *
  * @param proto Protocol number (e.g., IPPROTO_TCP).

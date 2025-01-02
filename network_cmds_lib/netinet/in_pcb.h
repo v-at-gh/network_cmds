@@ -100,8 +100,8 @@
 #endif /* SKYWALK */
 
 #ifdef BSD_KERNEL_PRIVATE
-/*
- * struct inpcb is the common protocol control block structure used in most
+/**
+ * struct `inpcb` is the common protocol control block structure used in most
  * IP transport protocols.
  *
  * Pointers to local and foreign host table entries, local and foreign socket
@@ -477,7 +477,7 @@ struct xinpcb_list_entry {
 };
 
 /**
- * struct xinpcb_n - Representation of an Internet Protocol (IP) Control Block (INPCB)
+ * struct `xinpcb_n` - Representation of an Internet Protocol (IP) Control Block (INPCB)
  *
  * This structure captures the state of a network protocol's endpoint within the kernel.
  * It represents a TCP or UDP socket's association with its IP address and port, along
@@ -547,37 +547,37 @@ struct xinpcb_list_entry {
  *   in the kernel.
  */
 struct  xinpcb_n {
-	u_int32_t       xi_len;         /* length of this structure */
-	u_int32_t       xi_kind;        /* XSO_INPCB */
-	u_int64_t       xi_inpp;
-	u_short         inp_fport;      /* foreign port */
-	u_short         inp_lport;      /* local port */
-	u_int64_t       inp_ppcb;       /* pointer to per-protocol pcb */
-	inp_gen_t       inp_gencnt;     /* generation count of this instance */
-	int             inp_flags;      /* generic IP/datagram flags */
-	u_int32_t       inp_flow;
-	u_char          inp_vflag;
-	u_char          inp_ip_ttl;     /* time to live */
-	u_char          inp_ip_p;       /* protocol */
-	union {                         /* foreign host table entry */
-		struct in_addr_4in6     inp46_foreign;
-		struct in6_addr         inp6_foreign;
+	u_int32_t xi_len;     /* length of this structure */
+	u_int32_t xi_kind;    /* XSO_INPCB */
+	u_int64_t xi_inpp;    /* Kernel pointer to the inpcb instance */
+	u_short   inp_fport;  /* foreign port */
+	u_short   inp_lport;  /* local port */
+	u_int64_t inp_ppcb;   /* pointer to per-protocol pcb */
+	inp_gen_t inp_gencnt; /* generation count of this instance */
+	int       inp_flags;  /* generic IP/datagram flags */
+	u_int32_t inp_flow;   /* Flow label or identifier, used in some IP routing and quality-of-service implementations */
+	u_char    inp_vflag;  /* Protocol family version flag */
+	u_char    inp_ip_ttl; /* time to live */
+	u_char    inp_ip_p;   /* protocol */
+	union { /* foreign host table entry */
+		struct in_addr_4in6 inp46_foreign;
+		struct in6_addr     inp6_foreign;
 	} inp_dependfaddr;
-	union {                         /* local host table entry */
-		struct in_addr_4in6     inp46_local;
-		struct in6_addr         inp6_local;
+	union { /* local host table entry */
+		struct in_addr_4in6 inp46_local;
+		struct in6_addr     inp6_local;
 	} inp_dependladdr;
 	struct {
-		u_char  inp4_ip_tos;    /* type of service */
+		u_char  inp4_ip_tos; /* type of service */
 	} inp_depend4;
 	struct {
 		u_int8_t inp6_hlim;
-		int     inp6_cksum;
-		u_short inp6_ifindex;
-		short   inp6_hops;
+		int      inp6_cksum;
+		u_short  inp6_ifindex;
+		short    inp6_hops;
 	} inp_depend6;
-	u_int32_t               inp_flowhash;
-	u_int32_t       inp_flags2;
+	u_int32_t inp_flowhash;
+	u_int32_t inp_flags2;
 };
 #endif /* PRIVATE */
 
@@ -627,10 +627,10 @@ struct  xinpcb_n {
  *   be detected and handled appropriately during iteration.
  */
 struct  xinpgen {
-	u_int32_t       xig_len;        /* length of this structure */
-	u_int           xig_count;      /* number of PCBs at this time */
-	inp_gen_t       xig_gen;        /* generation count at this time */
-	so_gen_t        xig_sogen;      /* current socket generation count */
+	u_int32_t xig_len;   /* length of this structure */
+	u_int     xig_count; /* number of PCBs at this time */
+	inp_gen_t xig_gen;   /* generation count at this time */
+	so_gen_t  xig_sogen; /* current socket generation count */
 };
 
 #pragma pack()

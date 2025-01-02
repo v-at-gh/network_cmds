@@ -573,32 +573,32 @@ struct  xsocket64 {
  *   active sockets, and the structure is typically populated during socket creation.
  */
 struct  xsocket_n {
-	u_int32_t               xso_len;        /* length of this structure */
-	u_int32_t               xso_kind;       /* XSO_SOCKET */
-	u_int64_t               xso_so;         /* makes a convenient handle */
-	short                   so_type;
-	u_int32_t               so_options;
-	short                   so_linger;
-	short                   so_state;
-	u_int64_t               so_pcb;         /* another convenient handle */
-	int                     xso_protocol;
-	int                     xso_family;
-	short                   so_qlen;
-	short                   so_incqlen;
-	short                   so_qlimit;
-	short                   so_timeo;
-	u_short                 so_error;
-	pid_t                   so_pgid;
-	u_int32_t               so_oobmark;
-	uid_t                   so_uid;         /* XXX */
-	pid_t                   so_last_pid;
-	pid_t                   so_e_pid;
-	so_gen_t                so_gencnt;
-	u_int32_t               so_flags;
-	u_int32_t               so_flags1;
-	int32_t                 so_usecount;
-	int32_t                 so_retaincnt;
-	u_int32_t               xso_filter_flags;
+	u_int32_t xso_len;          /* length of this structure */
+	u_int32_t xso_kind;         /* XSO_SOCKET */
+	u_int64_t xso_so;           /* makes a convenient handle */
+	short     so_type;          /* Socket type (e.g., SOCK_STREAM, SOCK_DGRAM, etc.) */
+	u_int32_t so_options;       /* Configuration options set for the socket (e.g., SO_REUSEADDR, SO_KEEPALIVE) */
+	short     so_linger;        /* Linger time for the socket, in seconds. Controls behavior during socket closure */
+	short     so_state;         /* Current state of the socket (e.g., connected, listening) */
+	u_int64_t so_pcb;           /* another convenient handle */
+	int       xso_protocol;     /* Protocol used by the socket (e.g., TCP, UDP) */
+	int       xso_family;       /* Protocol family (e.g., AF_INET for IPv4, AF_INET6 for IPv6) */
+	short     so_qlen;          /* Current length of the queue for incoming connections */
+	short     so_incqlen;       /* Length of the incomplete connection queue */
+	short     so_qlimit;        /* Maximum length of the connection queue */
+	short     so_timeo;         /* Timeout value for socket operations, in ticks */
+	u_short   so_error;         /* Error code associated with the socket */
+	pid_t     so_pgid;          /* Process group ID for the socket */
+	u_int32_t so_oobmark;       /* Out-of-band mark position in the socket buffer */
+	uid_t     so_uid;           /* User ID associated with the socket */
+	pid_t     so_last_pid;      /* Last process ID to access the socket */
+	pid_t     so_e_pid;         /* Effective process ID associated with the socket */
+	so_gen_t  so_gencnt;        /* Generation count of the socket. Tracks socket lifecycle changes */
+	u_int32_t so_flags;         /* Flags representing the socket's state or behavior */
+	u_int32_t so_flags1;        /* Additional flags for extended attributes */
+	int32_t   so_usecount;      /* Number of active references to the socket */
+	int32_t   so_retaincnt;     /* Number of retained references to the socket */
+	u_int32_t xso_filter_flags; /* Flags related to socket-level filtering operations */
 };
 
 /*
@@ -652,15 +652,15 @@ struct  xsocket_n {
  *   throttling, excessive memory usage, or network congestion.
  */
 struct xsockbuf_n {
-	u_int32_t               xsb_len;        /* length of this structure */
-	u_int32_t               xsb_kind;       /* XSO_RCVBUF or XSO_SNDBUF */
-	u_int32_t               sb_cc;
-	u_int32_t               sb_hiwat;
-	u_int32_t               sb_mbcnt;
-	u_int32_t               sb_mbmax;
-	int32_t                 sb_lowat;
-	short                   sb_flags;
-	short                   sb_timeo;
+	u_int32_t xsb_len;  /* Length of this structure */
+	u_int32_t xsb_kind; /* XSO_RCVBUF or XSO_SNDBUF */
+	u_int32_t sb_cc;    /* Current number of bytes in the buffer */
+	u_int32_t sb_hiwat; /* High-water mark for the buffer */
+	u_int32_t sb_mbcnt; /* Current number of memory blocks in use by the buffer */
+	u_int32_t sb_mbmax; /* Maximum number of memory blocks allowed for the buffer */
+	int32_t   sb_lowat; /* Low-water mark for the buffer */
+	short     sb_flags; /* Flags describing the buffer's state or configuration */
+	short     sb_timeo; /* Timeout value for socket buffer operations, in ticks */
 };
 
 /**
@@ -696,30 +696,30 @@ struct xsockbuf_n {
  *   user-friendly format, such as graphs or tables, for easier interpretation.
  */
 struct xsockstat_n {
-	u_int32_t               xst_len;        /* length of this structure */
-	u_int32_t               xst_kind;       /* XSO_STATS */
-	struct data_stats       xst_tc_stats[SO_TC_STATS_MAX];
+	u_int32_t         xst_len;        /* length of this structure */
+	u_int32_t         xst_kind;       /* XSO_STATS */
+	struct data_stats xst_tc_stats[SO_TC_STATS_MAX];
 };
 
 /*
  * Global socket statistics
  */
 struct soextbkidlestat {
-	u_int32_t       so_xbkidle_maxperproc;
-	u_int32_t       so_xbkidle_time;
-	u_int32_t       so_xbkidle_rcvhiwat;
-	int32_t         so_xbkidle_notsupp;
-	int32_t         so_xbkidle_toomany;
-	int32_t         so_xbkidle_wantok;
-	int32_t         so_xbkidle_active;
-	int32_t         so_xbkidle_nocell;
-	int32_t         so_xbkidle_notime;
-	int32_t         so_xbkidle_forced;
-	int32_t         so_xbkidle_resumed;
-	int32_t         so_xbkidle_expired;
-	int32_t         so_xbkidle_resched;
-	int32_t         so_xbkidle_nodlgtd;
-	int32_t         so_xbkidle_drained;
+	u_int32_t so_xbkidle_maxperproc;
+	u_int32_t so_xbkidle_time;
+	u_int32_t so_xbkidle_rcvhiwat;
+	int32_t   so_xbkidle_notsupp;
+	int32_t   so_xbkidle_toomany;
+	int32_t   so_xbkidle_wantok;
+	int32_t   so_xbkidle_active;
+	int32_t   so_xbkidle_nocell;
+	int32_t   so_xbkidle_notime;
+	int32_t   so_xbkidle_forced;
+	int32_t   so_xbkidle_resumed;
+	int32_t   so_xbkidle_expired;
+	int32_t   so_xbkidle_resched;
+	int32_t   so_xbkidle_nodlgtd;
+	int32_t   so_xbkidle_drained;
 };
 #endif /* PRIVATE */
 
