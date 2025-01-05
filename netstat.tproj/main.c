@@ -166,26 +166,26 @@ struct protox {
 };
 
 struct protox protox[] = {
-	{ protopr, tcp_stats,   NULL, "tcp",    IPPROTO_TCP },
-	{ protopr, udp_stats,   NULL, "udp",    IPPROTO_UDP },
-	{ protopr, NULL,        NULL, "divert", IPPROTO_DIVERT },
-	{ protopr, ip_stats,    NULL, "ip",     IPPROTO_RAW },
-	{ protopr, icmp_stats,  NULL, "icmp",   IPPROTO_ICMP },
-	{ protopr, igmp_stats,  NULL, "igmp",   IPPROTO_IGMP },
+	{ protopr, tcp_stats,  NULL, "tcp",    IPPROTO_TCP },
+	{ protopr, udp_stats,  NULL, "udp",    IPPROTO_UDP },
+	{ protopr, NULL,       NULL, "divert", IPPROTO_DIVERT },
+	{ protopr, ip_stats,   NULL, "ip",     IPPROTO_RAW },
+	{ protopr, icmp_stats, NULL, "icmp",   IPPROTO_ICMP },
+	{ protopr, igmp_stats, NULL, "igmp",   IPPROTO_IGMP },
 #ifdef IPSEC
 	{ NULL,    ipsec_stats, NULL, "ipsec",  IPPROTO_ESP},
 #endif
-	{ NULL,    arp_stats,	NULL, "arp",    0 },
-	{ mptcppr, mptcp_stats,	NULL, "mptcp",  IPPROTO_TCP },
+	{ NULL,    arp_stats,   NULL, "arp",    0 },
+	{ mptcppr, mptcp_stats, NULL, "mptcp",  IPPROTO_TCP },
 	{ NULL,    NULL,        NULL, NULL,     0 }
 };
 
 #ifdef INET6
 struct protox ip6protox[] = {
-	{ protopr, tcp_stats,   NULL,         "tcp",  IPPROTO_TCP },
-	{ protopr, udp_stats,   NULL,         "udp",  IPPROTO_UDP },
-	{ protopr, ip6_stats,   ip6_ifstats,  "ip6",  IPPROTO_RAW },
-	{ protopr, icmp6_stats, icmp6_ifstats,"icmp6",IPPROTO_ICMPV6 },
+	{ protopr, tcp_stats,   NULL,          "tcp",   IPPROTO_TCP },
+	{ protopr, udp_stats,   NULL,          "udp",   IPPROTO_UDP },
+	{ protopr, ip6_stats,   ip6_ifstats,   "ip6",   IPPROTO_RAW },
+	{ protopr, icmp6_stats, icmp6_ifstats, "icmp6", IPPROTO_ICMPV6 },
 #ifdef IPSEC
 	{ NULL,    ipsec_stats, NULL, "ipsec6", IPPROTO_ESP },
 #endif
@@ -220,9 +220,9 @@ struct protox ipcprotox[] = {
 };
 
 struct protox kernprotox[] = {
-	{ NULL,		print_net_api_stats,	NULL,	"net_api", 0 },
-	{ NULL,		print_if_ports_used_stats,	NULL,	"if_ports_used", 0 },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ NULL, print_net_api_stats, NULL, "net_api", 0 },
+	{ NULL, print_if_ports_used_stats, NULL, "if_ports_used", 0 },
+	{ NULL, NULL, NULL, NULL,	0 }
 };
 
 #ifdef AF_VSOCK
@@ -233,8 +233,8 @@ struct protox vsockprotox[] = {
 #endif
 
 struct protox unixprotox[] = {
-	{ unixpr,		unixstats,	NULL,	"unix", 0 },
-	{ NULL,		NULL,		NULL,	NULL,	0 }
+	{ unixpr, unixstats, NULL, "unix", 0 },
+	{ NULL, NULL, NULL, NULL,	0 }
 };
 
 struct protox *protoprotox[] = {

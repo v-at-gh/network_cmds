@@ -271,8 +271,7 @@ protopr_header(void) {
  * protocol control blocks (PCBs) for the given protocol.
  */
 void
-protopr(uint32_t proto,		/* for sysctl version we pass proto # */
-		char *name, int af)
+protopr(uint32_t proto,	char *name, int af)
 {
 	/*
 	 * Initialization of variables to track the state of protocol processing,
@@ -285,8 +284,8 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 	int istcp;
 
 	/*
-	 * Variable `first` is set to `1` to print the table headers on the
-	 * first iteration of the structure traversal loop::
+	 * Variable `first` is set to `1` to print the table headers
+	 * on the first iteration of the structure traversal loop::
 	 *
 	 *     for (
 	 *         next = buf + ROUNDUP64(xig->xig_len);
@@ -373,9 +372,11 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 	) {
 
 		/*
-		 * Cast the current position in the buffer to a generic structure pointer (xgen_n),
+		 * Cast the current position in the buffer
+		 * to a generic structure pointer (xgen_n),
 		 * representing one of several possible protocol-related structures.
-		 * This allows for flexible interpretation of the data while iterating through the buffer.
+		 * This allows for flexible interpretation of the data
+		 * while iterating through the buffer.
 		 */
 		xgn = (struct xgen_n *)next;
 
@@ -385,8 +386,7 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		 * it indicates an invalid or corrupted entry, or the end of valid data.
 		 * Break out of the loop if such a case is encountered.
 		 */
-		if (xgn->xgn_len <= sizeof(struct xinpgen))
-			break;
+		if (xgn->xgn_len <= sizeof(struct xinpgen)) break;
 
 		/*
 		 * Categorize and store protocol-specific structures (e.g., sockets, buffers)
@@ -408,7 +408,8 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		}
 
 		/* Skip to the next block unless all required structures are present */
-		if ((istcp && which != ALL_XGN_KIND_TCP) || (!istcp && which != ALL_XGN_KIND_INP))
+		if ( (istcp && which != ALL_XGN_KIND_TCP) ||
+			(!istcp && which != ALL_XGN_KIND_INP))
 			continue;
 		which = 0;
 
@@ -465,12 +466,11 @@ protopr(uint32_t proto,		/* for sysctl version we pass proto # */
 		}
 		else {
 			const char *vchar;
-
 #ifdef INET6
 			if ((inp->inp_vflag & INP_IPV6) != 0)
 				vchar = ((inp->inp_vflag & INP_IPV4) != 0) ? "46" : "6 ";
 			else
-#endif
+#endif /* INET6 */
 				vchar = ((inp->inp_vflag & INP_IPV4) != 0) ? "4 " : "  ";
 			printf("%-3.3s%-2.2s %6u %6u  ", name, vchar,
 					so_rcv->sb_cc,
