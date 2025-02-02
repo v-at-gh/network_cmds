@@ -1,5 +1,8 @@
-CC = cc
-CFLAGS = -D __APPLE__ -D PRIVATE -D INET6 -D IPSEC -D AF_VSOCK -Inetwork_cmds_lib
+COMPILER = clang
+CFLAGS = -O3 -march=native -flto \
+         -D __APPLE__ -D PRIVATE -D INET6 -D IPSEC -D AF_VSOCK \
+         -Inetwork_cmds_lib \
+         -Wall -Wextra -Wpedantic
 SOURCES_NETSTAT = \
     netstat.tproj/main.c \
     netstat.tproj/inet.c \
@@ -25,7 +28,7 @@ TARGETS = netstat
 all: $(TARGETS)
 
 netstat: $(SOURCES_NETSTAT)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(COMPILER) $(CFLAGS) -o $@ $^
 
 clean:
 	rm -f $(TARGETS)
